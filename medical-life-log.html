@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedLog -- Personal Health Journal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f7f4ef;--card:#fff;--ink:#1a1a2e;--muted:#6b6b80;--accent:#2d6a4f;--accent2:#b7791f;--accent3:#c0392b;--tag-visit:#edf4f0;--tag-visit-t:#4e7d64;--tag-med:#f6f1e8;--tag-med-t:#8a6d40;--tag-surgery:#f4eded;--tag-surgery-t:#8f4f4f;--tag-checkup:#eaf1f5;--tag-checkup-t:#4d7285;--tag-other:#f0edf6;--tag-other-t:#6f6590;--tag-symptom:#f4edf2;--tag-symptom-t:#7e5472;--border:#e2ddd6;--shadow:0 4px 24px rgba(26,26,46,0.07);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+
+/* AUTH */
+.auth-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;background:var(--ink);}
+.auth-screen.visible{display:flex;}
+.auth-logo{font-family:'Playfair Display',serif;font-size:2.8rem;color:#74c69d;margin-bottom:.3rem;letter-spacing:-1px;}
+.auth-sub{color:rgba(255,255,255,.5);font-size:1rem;margin-bottom:2rem;}
+.auth-card{background:#fff;border-radius:20px;padding:2rem 2.5rem;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.auth-card h2{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--ink);margin-bottom:.4rem;}
+.auth-card p{font-size:.85rem;color:var(--muted);margin-bottom:1.4rem;}
+.auth-field{display:flex;flex-direction:column;gap:5px;margin-bottom:1rem;}
+.auth-field label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+.auth-field input{border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s;background:var(--bg);color:var(--ink);width:100%;}
+.auth-field input:focus{border-color:var(--accent);background:#fff;}
+.auth-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;}
+.auth-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:background .2s;margin-top:.5rem;}
+.auth-btn:hover{background:#1e4d38;}
+.auth-btn.secondary{background:transparent;color:var(--accent);border:1.5px solid var(--accent);}
+.auth-btn.secondary:hover{background:#e8f5ee;}
+.auth-error{color:var(--accent3);font-size:.82rem;margin-top:.5rem;min-height:1.1rem;}
+.auth-link{text-align:center;font-size:.83rem;color:var(--muted);margin-top:1rem;}
+.auth-link a{color:var(--accent);cursor:pointer;font-weight:600;text-decoration:none;}
+.auth-link a:hover{text-decoration:underline;}
+.otp-row{display:flex;gap:.5rem;justify-content:center;margin:1rem 0;}
+.otp-row input{width:52px;height:56px;text-align:center;font-size:1.5rem;font-weight:700;border:2px solid var(--border);border-radius:10px;outline:none;transition:border-color .2s;background:var(--bg);}
+.otp-row input:focus{border-color:var(--accent);background:#fff;}
+.otp-demo{background:#e8f5ee;border:1px solid #b7e4c7;border-radius:8px;padding:10px 14px;font-size:.83rem;color:#1a6335;margin-bottom:1rem;text-align:center;}
+.ql-avatar{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;color:#fff;margin:0 auto 1rem;}
+.ql-name{font-family:'Playfair Display',serif;font-size:1.4rem;text-align:center;color:var(--ink);}
+.ql-email{font-size:.85rem;color:var(--muted);text-align:center;margin-bottom:1.5rem;}
+.ql-divider{text-align:center;font-size:.78rem;color:var(--muted);margin:.75rem 0;position:relative;}
+.ql-divider::before,.ql-divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:var(--border);}
+.ql-divider::before{left:0;}.ql-divider::after{right:0;}
+
+/* PROFILE SCREEN */
+#profile-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;background:var(--ink);}
+#profile-screen.visible{display:flex;}
+.ps-logo{font-family:'Playfair Display',serif;font-size:2.8rem;color:#74c69d;margin-bottom:.3rem;letter-spacing:-1px;}
+.ps-greeting{color:rgba(255,255,255,.6);font-size:.9rem;margin-bottom:1.5rem;}
+.ps-card{background:#fff;border-radius:20px;padding:2rem 2.5rem;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.ps-card h2{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--ink);margin-bottom:1rem;}
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem;}
+.profile-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:1rem .75rem;border:2px solid var(--border);border-radius:14px;background:var(--bg);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.profile-btn:hover{border-color:var(--accent);background:#e8f5ee;transform:translateY(-2px);}
+.profile-avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:700;color:#fff;}
+.profile-name{font-size:.88rem;font-weight:600;color:var(--ink);}
+.profile-count{font-size:.72rem;color:var(--muted);}
+.ps-divider{text-align:center;color:var(--muted);font-size:.8rem;margin:.75rem 0;position:relative;}
+.ps-divider::before,.ps-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border);}
+.ps-divider::before{left:0;}.ps-divider::after{right:0;}
+.ps-new{display:flex;gap:.6rem;}
+.ps-new input{flex:1;border:1.5px solid var(--border);border-radius:10px;padding:9px 14px;font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;background:var(--bg);}
+.ps-new input:focus{border-color:var(--accent);background:#fff;}
+.ps-new button{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:9px 18px;font-weight:600;font-size:.88rem;cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;}
+.ps-new button:hover{background:#1e4d38;}
+.ps-error{color:var(--accent3);font-size:.82rem;margin-top:.5rem;min-height:.9rem;}
+.ps-signout{text-align:center;margin-top:.8rem;font-size:.8rem;color:rgba(255,255,255,.4);}
+.ps-signout a{cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.4);}
+
+/* HEADER */
+header{background:var(--ink);color:#fff;padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;gap:1rem;}
+.logo{font-family:'Playfair Display',serif;font-size:1.4rem;letter-spacing:-.5px;display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.logo span{color:#74c69d;}
+nav{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;flex:1;}
+nav button{background:none;border:none;color:rgba(255,255,255,.65);font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:500;padding:7px 11px;border-radius:8px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+nav button:hover,nav button.active{background:rgba(255,255,255,.12);color:#fff;}
+nav button.active{color:#74c69d;}
+.user-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.1);border-radius:30px;padding:5px 12px 5px 5px;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.user-chip:hover{background:rgba(255,255,255,.18);}
+.user-chip-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff;}
+.user-chip-name{font-size:.82rem;font-weight:600;color:rgba(255,255,255,.9);}
+.user-chip-caret{font-size:.7rem;color:rgba(255,255,255,.5);}
+
+/* LAYOUT */
+main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem;}
+.view{display:none;}.view.active{display:block;}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:2rem;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.1rem 1.3rem;box-shadow:var(--shadow);transition:transform .2s;}
+.stat-card:hover{transform:translateY(-2px);}
+.stat-label{font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.stat-value{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;margin-top:4px;}
+.stat-sub{font-size:.78rem;color:var(--muted);margin-top:2px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}
+.full-col{grid-column:1/-1;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;box-shadow:var(--shadow);}
+.card-title{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;margin-bottom:1.25rem;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group.full{grid-column:1/-1;}
+label{font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+input,select,textarea{border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;font-family:'DM Sans',sans-serif;font-size:.93rem;color:var(--ink);background:var(--bg);outline:none;transition:border-color .2s;width:100%;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);background:#fff;}
+textarea{resize:vertical;min-height:72px;}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:11px 26px;font-family:'DM Sans',sans-serif;font-size:.93rem;font-weight:600;cursor:pointer;transition:background .2s,transform .1s;margin-top:.5rem;}
+.btn-primary:hover{background:#1e4d38;transform:translateY(-1px);}
+.btn-primary.pink{background:#9d174d;}.btn-primary.pink:hover{background:#7c1038;}
+.btn-sm{padding:7px 14px;font-size:.82rem;margin-top:0;}
+.btn-danger{background:none;border:none;color:var(--accent3);cursor:pointer;font-size:.85rem;font-weight:700;padding:4px 8px;border-radius:6px;transition:background .15s;}
+.btn-danger:hover{background:#fde8e8;}
+.btn-ghost{background:none;border:1.5px solid var(--border);border-radius:8px;padding:6px 14px;font-size:.83rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;font-family:'DM Sans',sans-serif;}
+.btn-ghost:hover{border-color:var(--accent3);color:var(--accent3);}
+
+/* BADGES */
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;}
+.badge-visit{background:var(--tag-visit);color:var(--tag-visit-t);}
+.badge-medication{background:var(--tag-med);color:var(--tag-med-t);}
+.badge-surgery{background:var(--tag-surgery);color:var(--tag-surgery-t);}
+.badge-checkup{background:var(--tag-checkup);color:var(--tag-checkup-t);}
+.badge-other{background:var(--tag-other);color:var(--tag-other-t);}
+.badge-symptom{background:var(--tag-symptom);color:var(--tag-symptom-t);}
+
+/* EVENTS */
+.event-list{display:flex;flex-direction:column;gap:.7rem;overflow-y:auto;}
+.event-item{display:flex;align-items:flex-start;gap:12px;padding:11px 13px;border:1px solid var(--border);border-radius:12px;background:var(--bg);transition:border-color .2s;}
+.event-item:hover{border-color:#b0c4b8;}
+.event-dot{width:9px;height:9px;border-radius:50%;margin-top:6px;flex-shrink:0;}
+.dot-visit{background:var(--tag-visit-t);}.dot-medication{background:var(--tag-med-t);}
+.dot-surgery{background:var(--tag-surgery-t);}.dot-checkup{background:var(--tag-checkup-t);}
+.dot-other{background:var(--tag-other-t);}.dot-symptom{background:var(--tag-symptom-t);}
+.event-body{flex:1;min-width:0;}
+.event-title{font-weight:600;font-size:.93rem;}
+.event-meta{font-size:.78rem;color:var(--muted);margin-top:2px;}
+.event-notes{font-size:.8rem;color:var(--muted);margin-top:4px;font-style:italic;}
+.event-actions{flex-shrink:0;}
+
+/* SEARCH PANEL */
+.search-panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1.2rem;box-shadow:var(--shadow);}
+.search-row{display:flex;gap:.7rem;flex-wrap:wrap;align-items:center;}
+.search-main{flex:2;min-width:160px;position:relative;}
+.search-main input{padding-left:34px;}
+.search-main::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.85rem;pointer-events:none;z-index:1;}
+.s-select{min-width:120px;}
+.chip-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.7rem;}
+.chip{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:.78rem;font-weight:600;background:var(--bg);border:1.5px solid var(--border);cursor:pointer;transition:all .15s;color:var(--muted);user-select:none;}
+.chip:hover,.chip.active{background:#e8f5ee;border-color:var(--accent);color:var(--accent);}
+.results-count{font-size:.76rem;color:var(--muted);margin-top:.5rem;}
+
+/* SEVERITY */
+.severity-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.sev-btn{background:none;border:1.5px solid var(--border);border-radius:8px;padding:6px 11px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .15s;color:var(--muted);}
+.sev-btn.active-1{background:#d1fae5;border-color:#2d6a4f;color:#2d6a4f;}
+.sev-btn.active-2{background:#fef9c3;border-color:#b7791f;color:#b7791f;}
+.sev-btn.active-3{background:#fee2e2;border-color:#c0392b;color:#c0392b;}
+
+/* CHARTS */
+.chart-wrap{position:relative;height:250px;}
+.insight-list{display:flex;flex-direction:column;gap:10px;}
+.insight-item{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-radius:10px;background:var(--bg);border:1px solid var(--border);}
+.insight-icon{font-size:1.3rem;padding-top:1px;}
+.insight-text{font-size:.87rem;line-height:1.5;}
+.year-row{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap;}
+.year-row select{width:auto;}
+.year-row h2{font-family:'Playfair Display',serif;font-size:1.4rem;}
+.freq-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.72rem;font-weight:700;background:#ede9fe;color:#6b21a8;margin-left:4px;}
+
+/* PROFILES */
+.profile-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--border);border-radius:12px;background:var(--bg);margin-bottom:.6rem;}
+.profile-row-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;color:#fff;flex-shrink:0;}
+.profile-row-info{flex:1;}
+.profile-row-name{font-weight:600;font-size:.95rem;}
+.profile-row-meta{font-size:.78rem;color:var(--muted);margin-top:2px;}
+.profile-row-actions{display:flex;gap:6px;}
+.profile-row-notes{font-size:.75rem;color:var(--muted);margin-top:3px;font-style:italic;}
+.btn-switch{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;}
+.btn-switch:hover{background:#1e4d38;}
+.btn-switch.current{background:#e8f5ee;color:var(--accent);cursor:default;}
+
+/* SHARE MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:20px;padding:2rem;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:mIn .22s ease;position:relative;}
+@keyframes mIn{from{transform:scale(.95) translateY(8px);opacity:0;}to{transform:scale(1);opacity:1;}}
+.modal-close{position:absolute;top:.9rem;right:1.1rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--muted);}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;margin-bottom:.3rem;}
+.modal-sub{font-size:.83rem;color:var(--muted);margin-bottom:1.2rem;}
+.share-what{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;}
+.share-what button{border:1.5px solid var(--border);background:var(--bg);border-radius:20px;padding:5px 13px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;color:var(--muted);font-family:'DM Sans',sans-serif;}
+.share-what button.active{border-color:var(--accent);color:var(--accent);background:#e8f5ee;}
+.share-scope{font-size:.8rem;color:var(--muted);margin-bottom:1rem;}
+.share-scope strong{color:var(--ink);}
+.share-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;}
+.share-btn{display:flex;flex-direction:column;align-items:center;gap:7px;padding:1rem .5rem;border:1.5px solid var(--border);border-radius:14px;background:var(--bg);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.share-btn:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.1);}
+.share-icon{font-size:1.8rem;}
+.share-label{font-size:.76rem;font-weight:600;color:var(--ink);}
+.share-btn.gmail:hover{border-color:#EA4335;background:#fef2f2;}
+.share-btn.whatsapp:hover{border-color:#25D366;background:#f0fdf4;}
+.share-btn.screenshot:hover{border-color:#6b21a8;background:#faf5ff;}
+.share-btn.copy:hover{border-color:var(--accent);background:#e8f5ee;}
+
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);}
+.empty-icon{font-size:2.2rem;margin-bottom:.6rem;}
+.timeline-group-label{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:10px 2px 5px;margin-top:4px;border-bottom:1px solid var(--border);margin-bottom:6px;}
+#toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;padding:11px 22px;border-radius:30px;font-size:.88rem;font-weight:500;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 32px rgba(0,0,0,.25);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+
+@media(max-width:750px){
+  .stats-row{grid-template-columns:1fr 1fr;}
+  .two-col,.share-grid{grid-template-columns:1fr;}
+  .form-grid{grid-template-columns:1fr;}
+  .form-group.full{grid-column:1;}
+  nav button{font-size:.75rem;padding:5px 8px;}
+  .search-row{flex-direction:column;}
+  .search-main,.s-select{width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIGN UP -->
+<div class="auth-screen" id="screen-signup">
+  <div class="auth-logo">MedLog ✦</div>
+  <div class="auth-sub">Your personal health journal</div>
+  <div class="auth-card">
+    <h2>Create your account</h2>
+    <p>One-time setup. Your data stays on your device.</p>
+    <div class="auth-row">
+      <div class="auth-field"><label>First Name</label><input type="text" id="su-first" placeholder="Jane"></div>
+      <div class="auth-field"><label>Last Name</label><input type="text" id="su-last" placeholder="Smith"></div>
+    </div>
+    <div class="auth-field">
+      <label>Email Address <span style="font-weight:400;color:var(--muted);font-size:.74rem;">(optional if phone provided)</span></label>
+      <input type="email" id="su-email" placeholder="jane@example.com" oninput="onContactInput()">
+    </div>
+    <div class="auth-field">
+      <label>Phone Number <span style="font-weight:400;color:var(--muted);font-size:.74rem;">(optional if email provided)</span></label>
+      <input type="tel" id="su-phone" placeholder="+1 555 000 0000" oninput="onContactInput()">
+      <div id="phone-tip" style="display:none;margin-top:7px;background:#e8f5ee;border:1px solid #b7e4c7;border-radius:9px;padding:9px 12px;font-size:.78rem;color:#1a6335;line-height:1.5;">
+        💬 <strong>Tip:</strong> Adding your phone number lets you share your health log directly via WhatsApp or SMS -- handy for sending records to your doctor or family.
+      </div>
+    </div>
+    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:9px 12px;font-size:.78rem;color:#0369a1;margin-bottom:.5rem;line-height:1.5;">
+      ℹ️ Either an email or phone number is required to create your account.
+    </div>
+    <div class="auth-error" id="su-error"></div>
+    <button class="auth-btn" onclick="submitSignup()">Create Account</button>
+    <div class="auth-link">Already have an account? <a onclick="showScreen('screen-login')">Sign in</a></div>
+  </div>
+</div>
+
+<!-- OTP -->
+<div class="auth-screen" id="screen-otp">
+  <div class="auth-logo">MedLog ✦</div>
+  <div class="auth-sub">Verify your phone</div>
+  <div class="auth-card">
+    <h2>Enter verification code</h2>
+    <p id="otp-desc">We sent a 4-digit code to your phone.</p>
+    <div class="otp-demo">📱 Demo mode -- your code is: <strong id="otp-display">----</strong></div>
+    <div style="text-align:center;font-size:.8rem;color:var(--muted);margin-bottom:.5rem;">Enter the 4-digit code below</div>
+    <div class="otp-row">
+      <input type="text" maxlength="1" id="otp0" oninput="otpNext(0)" onkeydown="otpBack(event,0)">
+      <input type="text" maxlength="1" id="otp1" oninput="otpNext(1)" onkeydown="otpBack(event,1)">
+      <input type="text" maxlength="1" id="otp2" oninput="otpNext(2)" onkeydown="otpBack(event,2)">
+      <input type="text" maxlength="1" id="otp3" oninput="otpNext(3)" onkeydown="otpBack(event,3)">
+    </div>
+    <div class="auth-error" id="otp-error"></div>
+    <button class="auth-btn" onclick="verifyOtp()">Verify &amp; Continue</button>
+    <div class="auth-link"><a onclick="resendOtp()">Resend code</a>&nbsp;·&nbsp;<a onclick="showScreen('screen-signup')">Back</a></div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div class="auth-screen" id="screen-login">
+  <div class="auth-logo">MedLog ✦</div>
+  <div class="auth-sub">Welcome back</div>
+  <div class="auth-card">
+    <h2>Sign in</h2>
+    <p>Enter your email or phone number to continue.</p>
+    <div class="auth-field"><label>Email or Phone</label><input type="text" id="li-identifier" placeholder="jane@example.com or +1 555…" onkeydown="if(event.key==='Enter')submitLogin()"></div>
+    <div class="auth-error" id="li-error"></div>
+    <button class="auth-btn" onclick="submitLogin()">Continue</button>
+    <div class="auth-link">New here? <a onclick="showScreen('screen-signup')">Create account</a></div>
+  </div>
+</div>
+
+<!-- QUICK LOGIN -->
+<div class="auth-screen" id="screen-quicklogin">
+  <div class="auth-logo">MedLog ✦</div>
+  <div class="auth-sub">Welcome back</div>
+  <div class="auth-card">
+    <div class="ql-avatar" id="ql-avatar"></div>
+    <div class="ql-name" id="ql-name"></div>
+    <div class="ql-email" id="ql-email"></div>
+    <button class="auth-btn" onclick="quickLogin()">Continue as <span id="ql-fname"></span></button>
+    <div class="ql-divider">not you?</div>
+    <button class="auth-btn secondary" onclick="showScreen('screen-login')">Sign in as someone else</button>
+  </div>
+</div>
+
+<!-- PROFILE PICKER -->
+<div id="profile-screen">
+  <div class="ps-logo">MedLog ✦</div>
+  <div class="ps-greeting" id="ps-greeting"></div>
+  <div class="ps-card">
+    <h2>Who is logging today?</h2>
+    <div class="profile-grid" id="ps-grid"></div>
+    <div class="ps-divider">or add new profile</div>
+    <div class="ps-new">
+      <input type="text" id="ps-name-input" placeholder="Enter full name…" maxlength="30" onkeydown="if(event.key==='Enter')createProfile()">
+      <button onclick="createProfile()">+ Add</button>
+    </div>
+    <div class="ps-error" id="ps-error"></div>
+  </div>
+  <div class="ps-signout"><a onclick="signOut()">Sign out</a></div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;">
+<div class="wm-layer"><div class="wm-text">MedLog &mdash; Private &amp; Confidential</div></div>
+<header>
+  <div class="logo">Med<span>Log</span> ✦</div>
+  <nav>
+    <button class="active" onclick="showView('dashboard')" id="nav-dashboard">📋 Dashboard</button>
+    <button onclick="showView('log')"      id="nav-log">➕ Log Event</button>
+    <button onclick="showView('symptoms')" id="nav-symptoms">🩺 Log Symptoms</button>
+    <button onclick="showView('history')"  id="nav-history">📅 History</button>
+    <button onclick="showView('analysis')" id="nav-analysis">📊 Analysis</button>
+    <button onclick="showView('profiles')" id="nav-profiles">👨‍👩‍👧 Family</button>
+    <button onclick="showView('about')" id="nav-about" style="margin-left:auto;opacity:.75;">About</button>
+  </nav>
+  <div class="user-chip" onclick="showView('profiles')" id="user-chip">
+    <div class="user-chip-avatar" id="chip-avatar"></div>
+    <span class="user-chip-name" id="chip-name"></span>
+    <span class="user-chip-caret">▾</span>
+  </div>
+</header>
+<main>
+
+<!-- DASHBOARD -->
+<div class="view active" id="view-dashboard">
+  <div class="stats-row" id="stats-row"></div>
+  <div id="dash-filter-bar" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.65rem 1.1rem;margin-bottom:1.2rem;align-items:center;gap:10px;box-shadow:var(--shadow);">
+    <span id="dash-filter-label" style="font-size:.85rem;font-weight:600;color:var(--ink);"></span>
+    <button onclick="clearDashFilter()" style="margin-left:auto;background:none;border:1.5px solid var(--border);border-radius:8px;padding:4px 12px;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--muted);font-family:DM Sans,sans-serif;">✕ Clear filter</button>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between;"><span id="dash-list-title">🕐 Recent Activity</span>
+        <button class="btn-primary btn-sm" style="margin-top:0;" onclick="openShare('recent')">📤 Share</button>
+      </div>
+      <div class="event-list" id="recent-list" style="max-height:420px;"></div>
+    </div>
+    <div class="card"><div class="card-title" id="dash-chart-title">📊 This Year at a Glance</div><div class="chart-wrap"><canvas id="dashChart"></canvas></div></div>
+  </div>
+</div>
+
+<!-- LOG EVENT -->
+<div class="view" id="view-log">
+  <div class="card" style="max-width:640px;margin:0 auto;">
+    <div class="card-title">➕ Log a Medical Event</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Event Type</label>
+        <select id="f-type" onchange="onTypeChange()">
+          <option value="visit">Doctor's Visit</option><option value="checkup">Check-up</option>
+          <option value="surgery">Surgery / Procedure</option><option value="medication">Medication / Drug</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Date</label><input type="date" id="f-date"></div>
+      <div class="form-group full"><label>Title / Description</label><input type="text" id="f-title" placeholder="e.g. Annual physical, Ibuprofen 200mg…"></div>
+      <div class="form-group" id="f-doctor-group"><label>Doctor / Clinic</label><input type="text" id="f-doctor" placeholder="Dr. Smith / City Clinic"></div>
+      <div class="form-group" id="f-dosage-group" style="display:none"><label>Dosage &amp; Frequency</label><input type="text" id="f-dosage" placeholder="200mg twice daily"></div>
+      <div class="form-group full"><label>Notes</label><textarea id="f-notes" placeholder="Additional details, follow-up needed…"></textarea></div>
+    </div>
+    <button class="btn-primary" onclick="saveEvent()">💾 Save Event</button>
+  </div>
+</div>
+
+<!-- SYMPTOMS -->
+<div class="view" id="view-symptoms">
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">🤒 Log a Non-Critical Symptom</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Symptom</label>
+          <select id="s-symptom" onchange="onSymptomChange()">
+            <optgroup label="Head &amp; Neurological"><option>Headache</option><option>Migraine</option><option>Dizziness</option><option>Brain Fog</option></optgroup>
+            <optgroup label="Digestive"><option>Stomach Ache</option><option>Nausea</option><option>Bloating</option><option>Heartburn</option><option>Diarrhea</option><option>Constipation</option></optgroup>
+            <optgroup label="Musculoskeletal"><option>Back Pain</option><option>Knee Pain</option><option>Neck Pain</option><option>Shoulder Pain</option><option>Joint Pain</option><option>Muscle Cramp</option></optgroup>
+            <optgroup label="Respiratory"><option>Cough</option><option>Sore Throat</option><option>Runny Nose</option><option>Shortness of Breath</option><option>Sneezing</option></optgroup>
+            <optgroup label="Skin"><option>Rash</option><option>Itching</option><option>Dry Skin</option></optgroup>
+            <optgroup label="General"><option>Fatigue</option><option>Fever</option><option>Chills</option><option>Insomnia</option><option>Anxiety</option><option>Eye Strain</option></optgroup>
+            <option value="Other">Other (specify below)</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Date</label><input type="date" id="s-date"></div>
+        <div class="form-group full" id="s-custom-group" style="display:none"><label>Custom Symptom</label><input type="text" id="s-custom" placeholder="Describe your symptom"></div>
+        <div class="form-group full"><label>Severity</label>
+          <div class="severity-row">
+            <button class="sev-btn active-1" id="sev1" onclick="setSeverity(1)">😌 Mild</button>
+            <button class="sev-btn" id="sev2" onclick="setSeverity(2)">😟 Moderate</button>
+            <button class="sev-btn" id="sev3" onclick="setSeverity(3)">😰 Severe</button>
+          </div>
+        </div>
+        <div class="form-group"><label>Duration</label>
+          <select id="s-duration"><option>A few minutes</option><option>Under 1 hour</option><option>A few hours</option><option>Half a day</option><option selected>All day</option><option>Multiple days</option><option>Ongoing</option></select>
+        </div>
+        <div class="form-group"><label>Possible Trigger</label>
+          <select id="s-trigger"><option value="">Unknown / None</option><option>Stress</option><option>Diet / Food</option><option>Lack of sleep</option><option>Physical activity</option><option>Weather change</option><option>Allergen exposure</option><option>Screen time</option><option>Medication side effect</option><option>Other</option></select>
+        </div>
+        <div class="form-group full"><label>Notes</label><textarea id="s-notes" placeholder="What helped? What made it worse?" style="min-height:60px;"></textarea></div>
+      </div>
+      <button class="btn-primary pink" onclick="saveSymptom()">💾 Save Symptom</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between;">📋 Symptom History
+        <button class="btn-primary btn-sm pink" style="margin-top:0;" onclick="openShare('symptoms')">📤 Share</button>
+      </div>
+      <div class="search-panel">
+        <div class="search-row">
+          <div class="search-main"><input type="text" id="sym-search" placeholder="Search symptoms, triggers…" oninput="renderSymList()"></div>
+          <select class="s-select" id="sym-year" onchange="renderSymList()"><option value="">All Years</option></select>
+        </div>
+        <div class="chip-row">
+          <span class="chip active" onclick="filterSym('all',this)">All</span>
+          <span class="chip" onclick="filterSym('Mild',this)">😌 Mild</span>
+          <span class="chip" onclick="filterSym('Moderate',this)">😟 Moderate</span>
+          <span class="chip" onclick="filterSym('Severe',this)">😰 Severe</span>
+        </div>
+        <div class="results-count" id="sym-count"></div>
+      </div>
+      <div class="event-list" id="symptom-list" style="max-height:360px;"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:1.5rem;">
+    <div class="card-title">📈 Most Frequent Symptoms (All Time)</div>
+    <div id="symptom-freq-row" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="view" id="view-history">
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between;">📅 Medical Event History
+      <button class="btn-primary btn-sm" style="margin-top:0;" onclick="openShare('history')">📤 Share</button>
+    </div>
+    <div class="search-panel">
+      <div class="search-row">
+        <div class="search-main"><input type="text" id="hist-search" placeholder="Search keyword, doctor, notes…" oninput="renderHistory()"></div>
+        <select class="s-select" id="hist-year" onchange="renderHistory()"><option value="">All Years</option></select>
+        <select class="s-select" id="hist-type" onchange="syncHistType()">
+          <option value="">All Types</option>
+          <option value="visit">Doctor's Visit</option><option value="checkup">Check-up</option>
+          <option value="surgery">Surgery</option><option value="medication">Medication</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div class="chip-row" id="hist-chip-row">
+        <span class="chip active" onclick="setHistChip('all',this)">All</span>
+        <span class="chip" onclick="setHistChip('visit',this)">Visits</span>
+        <span class="chip" onclick="setHistChip('checkup',this)">Check-ups</span>
+        <span class="chip" onclick="setHistChip('surgery',this)">Surgeries</span>
+        <span class="chip" onclick="setHistChip('medication',this)">Medications</span>
+        <span class="chip" onclick="setHistChip('other',this)">Other</span>
+      </div>
+      <div class="results-count" id="hist-count"></div>
+    </div>
+    <div class="event-list" id="history-list" style="max-height:540px;"></div>
+  </div>
+</div>
+
+<!-- ANALYSIS -->
+<div class="view" id="view-analysis">
+  <div class="year-row">
+    <h2>Yearly Health Report</h2>
+    <select id="year-select" onchange="renderAnalysis()"></select>
+    <button class="btn-primary btn-sm" style="margin-top:0;margin-left:auto;" onclick="openShare('analysis')">📤 Share Report</button>
+  </div>
+  <div class="stats-row" id="analysis-stats"></div>
+  <div class="two-col">
+    <div class="card"><div class="card-title">📈 Events by Month</div><div class="chart-wrap"><canvas id="monthChart"></canvas></div></div>
+    <div class="card"><div class="card-title">🥧 All Record Types</div><div class="chart-wrap"><canvas id="pieChart"></canvas></div></div>
+    <div class="card"><div class="card-title">🤒 Top Symptoms This Year</div><div class="chart-wrap"><canvas id="symChart"></canvas></div></div>
+    <div class="card"><div class="card-title">😰 Severity Split</div><div class="chart-wrap"><canvas id="sevChart"></canvas></div></div>
+    <div class="card full-col"><div class="card-title">💡 Health Insights</div><div class="insight-list" id="insights-list"></div></div>
+  </div>
+</div>
+
+<!-- FAMILY MEMBERS -->
+<div class="view" id="view-profiles">
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">&#128106; Family Members</div>
+      <div id="profiles-list"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">&#10133; Add Family Member</div>
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label>Full Name</label>
+        <input type="text" id="new-profile-name" placeholder="e.g. Sarah Johnson" maxlength="30">
+      </div>
+      <div class="form-group" style="margin-bottom:.7rem;">
+        <label>Relationship to you</label>
+        <select id="new-profile-rel">
+          <option value="">-- Select relationship --</option>
+          <optgroup label="Immediate Family">
+            <option>Myself</option>
+            <option>Spouse / Partner</option>
+            <option>Child (Son)</option>
+            <option>Child (Daughter)</option>
+            <option>Newborn / Infant</option>
+          </optgroup>
+          <optgroup label="Extended Family">
+            <option>Mother</option>
+            <option>Father</option>
+            <option>Brother</option>
+            <option>Sister</option>
+            <option>Grandmother</option>
+            <option>Grandfather</option>
+            <option>Aunt</option>
+            <option>Uncle</option>
+            <option>Cousin</option>
+          </optgroup>
+          <optgroup label="Other">
+            <option>Caregiver</option>
+            <option>Family Friend</option>
+            <option>Pet</option>
+            <option>Other</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label>Date of Birth <span style="font-weight:400;color:var(--muted);font-size:.74rem;">(optional)</span></label>
+        <input type="date" id="new-profile-dob">
+      </div>
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label>Email Address <span style="font-weight:400;color:var(--muted);font-size:.74rem;">(optional if phone provided)</span></label>
+        <input type="email" id="new-profile-email" placeholder="family@example.com" oninput="onFamilyContactInput()">
+      </div>
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label>Phone Number <span style="font-weight:400;color:var(--muted);font-size:.74rem;">(optional if email provided)</span></label>
+        <input type="tel" id="new-profile-phone" placeholder="+1 555 000 0000" oninput="onFamilyContactInput()">
+        <div id="family-phone-tip" style="display:none;margin-top:7px;background:#e8f5ee;border:1px solid #b7e4c7;border-radius:9px;padding:9px 12px;font-size:.78rem;color:#1a6335;line-height:1.5;">
+          &#128172; <strong>Tip:</strong> Adding a phone number lets you share this member's records directly via WhatsApp or SMS.
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label>Health Notes <span style="font-weight:400;color:var(--muted);font-size:.74rem;">(allergies, blood type, etc.)</span></label>
+        <textarea id="new-profile-notes" placeholder="Any important health info for this person..." style="min-height:60px;"></textarea>
+      </div>
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:9px 12px;font-size:.78rem;color:#0369a1;margin-bottom:.5rem;line-height:1.5;">
+        &#8505;&#65039; At least one of email or phone is required to add a family member.
+      </div>
+      <div class="auth-error" id="family-add-error" style="min-height:1rem;margin-bottom:.3rem;font-size:.82rem;"></div>
+      <button class="btn-primary btn-sm" onclick="addProfileFromManage()">Add Family Member</button>
+      <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--border);">
+        <p style="font-size:.83rem;color:var(--muted);margin-bottom:.7rem;">Warning: Delete active member and ALL their data.</p>
+        <button class="btn-ghost" onclick="deleteCurrentProfile()">Remove Active Member</button>
+      </div>
+      <div style="margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--border);">
+        <p style="font-size:.83rem;color:var(--muted);margin-bottom:.7rem;">Sign out and return to login screen.</p>
+        <button class="btn-ghost" onclick="signOut()">Sign Out</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="view" id="view-about"><div class="card" style="max-width:720px;margin:0 auto;"><div class="card-title">About MedLog</div><div style="font-size:.93rem;line-height:1.7;"><div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1rem;"><div style="font-family:Playfair Display,serif;font-size:1.3rem;font-weight:700;">MedLog &mdash; Personal Health Journal</div><div style="color:var(--muted);font-size:.83rem;">Version 1.5 &middot; Built 2026 &middot; Browser App</div></div><p style="margin-bottom:1rem;">MedLog is a private, browser-based health journal for individuals and families. All data stays on your device.</p><p style="margin-bottom:1rem;"><b>Key Features:</b> Multi-member family tracking, medical events, symptom logging, yearly analysis, timeline grouping, enhanced search, share via Gmail/WhatsApp/SMS/PDF, backup and restore.</p><p style="margin-bottom:1rem;"><b>Technology:</b> Single HTML file, no installation. Built with vanilla JS and Chart.js. Designed with Claude by Anthropic.</p><p style="margin-bottom:1rem;font-size:.85rem;color:var(--muted);"><b>Disclaimer:</b> Not a medical device. Always consult a healthcare provider for medical decisions.</p><div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:1rem;font-size:.82rem;color:#0369a1;text-align:center;">&copy; 2026 MedLog. All rights reserved. Unauthorised copying or reproduction strictly prohibited.</div></div></div></div>
+</main>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="share-modal" onclick="closeShareOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeShare()">✕</button>
+    <div class="modal-title">📤 Share Health Data</div>
+    <div class="modal-sub">Choose what to share and how to send it.</div>
+    <div class="share-what" id="share-what-btns"></div>
+    <div class="share-scope" id="share-scope"></div>
+    <div class="share-grid">
+      <button class="share-btn gmail"      onclick="doShare('gmail')"     ><span class="share-icon">✉️</span><span class="share-label">Gmail</span></button>
+      <button class="share-btn whatsapp"   onclick="doShare('whatsapp')"  ><span class="share-icon">💬</span><span class="share-label">WhatsApp</span></button>
+      <button class="share-btn screenshot" onclick="doShare('print')"     ><span class="share-icon">🖨️</span><span class="share-label">Print / PDF</span></button>
+      <button class="share-btn copy"       onclick="doShare('copy')"      ><span class="share-icon">📋</span><span class="share-label">Copy Text</span></button>
+      <button class="share-btn"            onclick="doShare('sms')"       ><span class="share-icon">📱</span><span class="share-label">SMS</span></button>
+      <button class="share-btn"            onclick="doShare('native')"    ><span class="share-icon">↗️</span><span class="share-label">More…</span></button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script charset="utf-8">
+// == CONSTANTS -----------------------------------------------------
+const AV=['#2d6a4f','#0c6278','#c0392b','#b7791f','#6b21a8','#9d174d','#1a4d7a','#2d5016','#7c3d12'];
+const colorFor=i=>AV[i%AV.length];
+const initials=n=>n.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const fmtDate=d=>{if(!d)return'';return new Date(d+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});};
+
+// -- AUTH ----------------------------------------------------------
+const getUsers=()=>JSON.parse(localStorage.getItem('ml_users')||'[]');
+const saveUsers=u=>localStorage.setItem('ml_users',JSON.stringify(u));
+const getSession=()=>JSON.parse(localStorage.getItem('ml_session')||'null');
+const setSession=u=>localStorage.setItem('ml_session',JSON.stringify(u));
+const clearSession=()=>{localStorage.removeItem('ml_session');localStorage.removeItem('ml_active_profile');};
+
+let pendingSignup=null,genOtp_='';
+const genOtp=()=>String(Math.floor(1000+Math.random()*9000));
+
+function showScreen(id){
+  ['screen-signup','screen-otp','screen-login','screen-quicklogin'].forEach(s=>{
+    const el=document.getElementById(s);el.classList.remove('visible');el.style.display='none';
+  });
+  document.getElementById('profile-screen').style.display='none';
+  const t=document.getElementById(id);t.classList.add('visible');t.style.display='flex';
+}
+
+function onContactInput(){
+  const phone=document.getElementById('su-phone').value.trim();
+  const tip=document.getElementById('phone-tip');
+  if(tip)tip.style.display=phone.length>0?'block':'none';
+}
+function onFamilyContactInput(){
+  const phone=(document.getElementById('new-profile-phone')||{value:''}).value.trim();
+  const tip=document.getElementById('family-phone-tip');
+  if(tip)tip.style.display=phone.length>0?'block':'none';
+  const err=document.getElementById('family-add-error');
+  if(err)err.textContent='';
+}
+
+function submitSignup(){
+  const first=document.getElementById('su-first').value.trim();
+  const last=document.getElementById('su-last').value.trim();
+  const email=document.getElementById('su-email').value.trim().toLowerCase();
+  const phone=document.getElementById('su-phone').value.trim();
+  const err=document.getElementById('su-error');
+  if(!first||!last){err.textContent='Please enter your full name.';return;}
+  const hasEmail=email.length>0&&email.includes('@');
+  const hasPhone=phone.length>=6;
+  if(!hasEmail&&!hasPhone){err.textContent='Please enter either a valid email or a phone number.';return;}
+  if(email.length>0&&!hasEmail){err.textContent='That email looks invalid, please check the format.';return;}
+  if(phone.length>0&&!hasPhone){err.textContent='That phone number looks too short, please check it.';return;}
+  const users=getUsers();
+  if(hasEmail&&users.find(u=>u.email===email)){err.textContent='An account with this email already exists. Sign in instead.';return;}
+  if(hasPhone&&!hasEmail&&users.find(u=>u.phone===phone)){err.textContent='An account with this phone already exists. Sign in instead.';return;}
+  err.textContent='';
+  genOtp_=genOtp();pendingSignup={first,last,email,phone};
+  const otpMsg=hasPhone?'We sent a 4-digit code to '+phone+'.':'Verify your account - enter the code shown below.';
+  document.getElementById('otp-desc').textContent=otpMsg;
+  document.getElementById('otp-display').textContent=genOtp_;
+  showScreen('screen-otp');document.getElementById('otp0').focus();
+}
+
+function otpNext(i){if(document.getElementById('otp'+i).value&&i<3)document.getElementById('otp'+(i+1)).focus();}
+function otpBack(e,i){if(e.key==='Backspace'&&!document.getElementById('otp'+i).value&&i>0)document.getElementById('otp'+(i-1)).focus();}
+function resendOtp(){genOtp_=genOtp();document.getElementById('otp-display').textContent=genOtp_;toast('New code: '+genOtp_);}
+
+function verifyOtp(){
+  const entered=[0,1,2,3].map(i=>document.getElementById('otp'+i).value).join('');
+  if(entered.length<4){document.getElementById('otp-error').textContent='Enter all 4 digits.';return;}
+  if(entered!==genOtp_){document.getElementById('otp-error').textContent='Incorrect code. Try again.';return;}
+  document.getElementById('otp-error').textContent='';
+  const users=getUsers();
+  const u={id:'u_'+Date.now(),...pendingSignup,created:new Date().toISOString()};
+  users.push(u);saveUsers(users);setSession(u);pendingSignup=null;
+  toast('✅ Welcome, '+u.first+'!');launchApp(u);
+}
+
+function submitLogin(){
+  const id=document.getElementById('li-identifier').value.trim().toLowerCase();
+  const err=document.getElementById('li-error');
+  if(!id){err.textContent='Please enter your email or phone.';return;}
+  const u=getUsers().find(function(x){
+    return (x.email&&x.email===id)||(x.phone&&(x.phone===id||x.phone.replace(/ /g,'')===id.replace(/ /g,'')));
+  });
+  if(!u){err.textContent='No account found for that email or phone. Please sign up.';return;}
+  err.textContent='';setSession(u);toast('Welcome back, '+u.first+'!');launchApp(u);
+}
+
+function quickLogin(){launchApp(getSession());}
+
+function signOut(){clearSession();document.getElementById('app').style.display='none';boot();}
+
+// -- PROFILE STORE -------------------------------------------------
+const getProfiles=()=>JSON.parse(localStorage.getItem('ml_profiles')||'[]');
+const saveProfiles=p=>localStorage.setItem('ml_profiles',JSON.stringify(p));
+const getActiveId=()=>localStorage.getItem('ml_active_profile')||null;
+const setActiveId=id=>localStorage.setItem('ml_active_profile',id);
+const pKey=(id,t)=>`ml_${id}_${t}`;
+const getPD=(id,t)=>JSON.parse(localStorage.getItem(pKey(id,t))||'[]');
+const savePD=(id,t,d)=>localStorage.setItem(pKey(id,t),JSON.stringify(d));
+
+let activeProfileId=null,events=[],symptoms=[];
+function loadProfile(){
+  activeProfileId=getActiveId();
+  if(!activeProfileId)return;
+  events=getPD(activeProfileId,'events');
+  symptoms=getPD(activeProfileId,'symptoms');
+}
+function saveData(){if(!activeProfileId)return;savePD(activeProfileId,'events',events);savePD(activeProfileId,'symptoms',symptoms);}
+
+// -- LAUNCH --------------------------------------------------------
+function launchApp(user){
+  ['screen-signup','screen-otp','screen-login','screen-quicklogin'].forEach(s=>{
+    const el=document.getElementById(s);el.classList.remove('visible');el.style.display='none';
+  });
+  const profiles=getProfiles();
+  const lastId=getActiveId();
+  if(lastId&&profiles.find(p=>p.id===lastId)){
+    loadProfile();
+    if(!events.length&&!symptoms.length){seedDemo();saveData();}
+    document.getElementById('profile-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    updateChip();initForms();populateYears();showView('dashboard');
+  } else {
+    showProfileScreen(user);
+  }
+}
+
+function showProfileScreen(user){
+  document.getElementById('app').style.display='none';
+  const ps=document.getElementById('profile-screen');ps.style.display='flex';
+  document.getElementById('ps-greeting').textContent=`Signed in as ${user.first} ${user.last} · ${user.email}`;
+  renderPickerGrid();
+}
+
+function renderPickerGrid(){
+  const profiles=getProfiles();const g=document.getElementById('ps-grid');
+  if(!profiles.length){g.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:.88rem;padding:1rem;">No profiles yet -- add one below.</div>`;return;}
+  g.innerHTML=profiles.map((p,i)=>{
+    const t=getPD(p.id,'events').length+getPD(p.id,'symptoms').length;
+    return `<button class="profile-btn" onclick="selectProfile('${p.id}')">
+      <div class="profile-avatar" style="background:${colorFor(i)}">${initials(p.name)}</div>
+      <div class="profile-name">${p.name}</div>
+      <div class="profile-count">${p.relationship?p.relationship+' · ':''}${t} record${t!==1?'s':''}</div>
+    </button>`;
+  }).join('');
+}
+
+function createProfile(){
+  const inp=document.getElementById('ps-name-input'),name=inp.value.trim();
+  const err=document.getElementById('ps-error');
+  if(!name){err.textContent='Please enter a name.';return;}
+  const profiles=getProfiles();
+  if(profiles.find(p=>p.name.toLowerCase()===name.toLowerCase())){err.textContent='Name already exists.';return;}
+  err.textContent='';
+  const np={id:'p_'+Date.now(),name,relationship:''};
+  profiles.push(np);saveProfiles(profiles);inp.value='';
+  selectProfile(np.id);
+}
+
+function selectProfile(id){
+  setActiveId(id);loadProfile();
+  if(!events.length&&!symptoms.length){seedDemo();saveData();}
+  document.getElementById('profile-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  updateChip();initForms();populateYears();showView('dashboard');
+}
+
+function updateChip(){
+  const profiles=getProfiles(),p=profiles.find(x=>x.id===activeProfileId);
+  if(!p)return;
+  const i=profiles.indexOf(p);
+  document.getElementById('chip-avatar').style.background=colorFor(i);
+  document.getElementById('chip-avatar').textContent=initials(p.name);
+  document.getElementById('chip-name').textContent=p.name.split(' ')[0];
+}
+
+// -- YEAR FILTER POPULATE ------------------------------------------
+function populateYears(){
+  const yrs=[...new Set([...events,...symptoms].map(r=>r.date?.split('-')[0]).filter(Boolean))].sort().reverse();
+  ['hist-year','sym-year'].forEach(id=>{
+    const s=document.getElementById(id);if(!s)return;
+    const cur=s.value;
+    s.innerHTML='<option value="">All Years</option>'+yrs.map(y=>`<option value="${y}"${y===cur?' selected':''}>${y}</option>`).join('');
+  });
+}
+
+// -- NAV -----------------------------------------------------------
+let histChip='all',symFilter='all',currentSev=1;
+let dChart,mChart,pChart,sChart,sevChart;
+
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active');
+  var nb=document.getElementById('nav-'+id);if(nb)nb.classList.add('active');
+  populateYears();
+  if(id==='dashboard')renderDash();
+  if(id==='history')renderHistory();
+  if(id==='symptoms'){renderSymList();renderSymFreq();}
+  if(id==='analysis')renderAnalysis();
+  if(id==='profiles')renderProfilesView();
+}
+
+// -- FORMS ---------------------------------------------------------
+function initForms(){const t=new Date().toISOString().split('T')[0];document.getElementById('f-date').value=t;document.getElementById('s-date').value=t;}
+function onTypeChange(){const t=document.getElementById('f-type').value;document.getElementById('f-dosage-group').style.display=t==='medication'?'':'none';document.getElementById('f-doctor-group').style.display=t==='medication'?'none':'';}
+function saveEvent(){
+  const title=document.getElementById('f-title').value.trim();if(!title){toast('Please enter a title.');return;}
+  events.unshift({id:Date.now(),type:document.getElementById('f-type').value,date:document.getElementById('f-date').value,title,doctor:document.getElementById('f-doctor').value.trim(),dosage:document.getElementById('f-dosage').value.trim(),notes:document.getElementById('f-notes').value.trim()});
+  saveData();['f-title','f-doctor','f-dosage','f-notes'].forEach(id=>document.getElementById(id).value='');
+  toast('✅ Event saved!');showView('dashboard');
+}
+function deleteEvent(id){if(!confirm('Delete?'))return;events=events.filter(e=>e.id!==id);saveData();renderHistory();renderDash();toast('🗑 Deleted.');}
+function onSymptomChange(){document.getElementById('s-custom-group').style.display=document.getElementById('s-symptom').value==='Other'?'':'none';}
+function setSeverity(n){currentSev=n;[1,2,3].forEach(i=>document.getElementById('sev'+i).className='sev-btn'+(i===n?' active-'+n:''));}
+function saveSymptom(){
+  let name=document.getElementById('s-symptom').value;
+  if(name==='Other'){name=document.getElementById('s-custom').value.trim();if(!name){toast('Please describe the symptom.');return;}}
+  const sl=['','Mild','Moderate','Severe'];
+  symptoms.unshift({id:Date.now(),name,date:document.getElementById('s-date').value,severity:sl[currentSev],duration:document.getElementById('s-duration').value,trigger:document.getElementById('s-trigger').value,notes:document.getElementById('s-notes').value.trim()});
+  saveData();document.getElementById('s-custom').value='';document.getElementById('s-notes').value='';
+  document.getElementById('s-symptom').selectedIndex=0;document.getElementById('s-trigger').selectedIndex=0;
+  setSeverity(1);onSymptomChange();toast('✅ Symptom logged!');renderSymList();renderSymFreq();
+}
+function deleteSymptom(id){if(!confirm('Delete?'))return;symptoms=symptoms.filter(s=>s.id!==id);saveData();renderSymList();renderSymFreq();toast('🗑 Deleted.');}
+
+// -- HTML BUILDERS -------------------------------------------------
+function eventHtml(ev,del=true){return `<div class="event-item"><div class="event-dot dot-${ev.type}"></div><div class="event-body"><div class="event-title">${ev.title}</div><div class="event-meta"><span class="badge badge-${ev.type}">${ev.type}</span>&nbsp;${fmtDate(ev.date)}${ev.doctor?' · '+ev.doctor:''}${ev.dosage?' · '+ev.dosage:''}</div>${ev.notes?`<div class="event-notes">${ev.notes}</div>`:''}</div>${del?`<div class="event-actions"><button class="btn-danger" onclick="deleteEvent(${ev.id})">✕</button></div>`:''}</div>`;}
+function symHtml(s,del=true){const n=s.severity==='Mild'?1:s.severity==='Moderate'?2:3;const ic=['','😌','😟','😰'][n];return `<div class="event-item"><div class="event-dot dot-symptom"></div><div class="event-body"><div class="event-title">${ic} ${s.name}</div><div class="event-meta"><span class="badge badge-symptom">${s.severity}</span>&nbsp;${fmtDate(s.date)}${s.duration?' · '+s.duration:''}${s.trigger?' · '+s.trigger:''}</div>${s.notes?`<div class="event-notes">${s.notes}</div>`:''}</div>${del?`<div class="event-actions"><button class="btn-danger" onclick="deleteSymptom(${s.id})">✕</button></div>`:''}</div>`;}
+function emptyHtml(m='No entries found.'){return `<div class="empty"><div class="empty-icon">🩺</div>${m}</div>`;}
+
+// -- DASHBOARD -----------------------------------------------------
+var dashFilter=null; // null=all, 'total','year','month','medication','symptom'
+
+function clearDashFilter(){
+  dashFilter=null;
+  var bar=document.getElementById('dash-filter-bar');
+  if(bar){bar.style.display='none';}
+  renderDash();
+}
+
+function setDashFilter(f){
+  dashFilter=dashFilter===f?null:f;
+  renderDash();
+}
+
+function renderDash(){
+  var yr=new Date().getFullYear(),yrS=String(yr);
+  var evY=events.filter(function(e){return e.date&&e.date.startsWith(yrS);});
+  var syY=symptoms.filter(function(s){return s.date&&s.date.startsWith(yrS);});
+  var mo=new Date().getMonth();
+  var thisMo=[].concat(evY,syY).filter(function(r){return new Date((r.date||'')+'T00:00:00').getMonth()===mo;});
+  var p=getProfiles().find(function(x){return x.id===activeProfileId;});
+
+  // Stat cards -- active one gets a highlight ring
+  var cards=[
+    {key:'total', label:'Total Records',  val:events.length+symptoms.length,          sub:(p&&p.name)||'',        color:''},
+    {key:'year',  label:'This Year',       val:evY.length+syY.length,                  sub:String(yr),             color:''},
+    {key:'month', label:'This Month',      val:thisMo.length,                           sub:'logged',               color:''},
+    {key:'medication',label:'Medications', val:events.filter(function(e){return e.type==='medication';}).length, sub:'tracked', color:''},
+    {key:'symptom',   label:'Symptoms',    val:symptoms.length,                         sub:'non-critical',         color:'color:var(--tag-symptom-t)'},
+  ];
+  document.getElementById('stats-row').innerHTML=cards.map(function(card){
+    var active=dashFilter===card.key;
+    var ring=active?'outline:2.5px solid var(--accent);outline-offset:2px;':'';
+    return '<div class="stat-card" data-key="'+card.key+'" style="cursor:pointer;'+ring+'" title="Click to filter">'
+      +'<div class="stat-label">'+card.label+'</div>'
+      +'<div class="stat-value" style="'+card.color+'">'+card.val+'</div>'
+      +'<div class="stat-sub">'+card.sub+'</div>'
+      +'</div>';
+  }).join('');
+  // Wire click via event delegation (avoids inline onclick quote issues)
+  var sr=document.getElementById('stats-row');
+  if(sr&&!sr._wired){
+    sr._wired=true;
+    sr.addEventListener('click',function(e){
+      var card=e.target.closest('[data-key]');
+      if(card)setDashFilter(card.getAttribute('data-key'));
+    });
+  }
+
+  // Filter bar
+  var filterLabels={total:'All Records',year:'This Year ('+yr+')',month:'This Month',medication:'Medications',symptom:'Symptoms'};
+  var bar=document.getElementById('dash-filter-bar');
+  var lbl=document.getElementById('dash-filter-label');
+  if(bar){
+    if(dashFilter){
+      bar.style.cssText='display:flex;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.65rem 1.1rem;margin-bottom:1.2rem;align-items:center;gap:10px;box-shadow:var(--shadow);';
+      if(lbl)lbl.textContent='Showing: '+filterLabels[dashFilter];
+    } else {
+      bar.style.display='none';
+    }
+  }
+
+  // Build filtered record list
+  var allEv=events.map(function(e){return Object.assign({},e,{_k:'ev'});});
+  var allSy=symptoms.map(function(s){return Object.assign({},s,{_k:'sy'});});
+  var filteredEv=allEv, filteredSy=allSy;
+
+  if(dashFilter==='total'){/* show all */}
+  else if(dashFilter==='year'){
+    filteredEv=allEv.filter(function(e){return e.date&&e.date.startsWith(yrS);});
+    filteredSy=allSy.filter(function(s){return s.date&&s.date.startsWith(yrS);});
+  } else if(dashFilter==='month'){
+    filteredEv=allEv.filter(function(r){return new Date((r.date||'')+'T00:00:00').getFullYear()===yr&&new Date((r.date||'')+'T00:00:00').getMonth()===mo;});
+    filteredSy=allSy.filter(function(r){return new Date((r.date||'')+'T00:00:00').getFullYear()===yr&&new Date((r.date||'')+'T00:00:00').getMonth()===mo;});
+  } else if(dashFilter==='medication'){
+    filteredEv=allEv.filter(function(e){return e.type==='medication';});
+    filteredSy=[];
+  } else if(dashFilter==='symptom'){
+    filteredEv=[];
+    filteredSy=allSy;
+  }
+
+  var all=filteredEv.concat(filteredSy).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+
+  // Update list title
+  var listTitle=document.getElementById('dash-list-title');
+  if(listTitle)listTitle.textContent=dashFilter?('🔍 '+filterLabels[dashFilter]):'🕐 Recent Activity';
+
+  // Grouped timeline
+  var now=new Date();
+  var todayStr=now.toISOString().split('T')[0];
+  var weekAgo=new Date(now);weekAgo.setDate(now.getDate()-7);
+  var monthAgo=new Date(now);monthAgo.setDate(now.getDate()-30);
+  var groups=[
+    {label:'Today',      items:all.filter(function(r){return r.date===todayStr;})},
+    {label:'This Week',  items:all.filter(function(r){return r.date<todayStr&&new Date(r.date+'T00:00:00')>=weekAgo;})},
+    {label:'This Month', items:all.filter(function(r){return new Date(r.date+'T00:00:00')<weekAgo&&new Date(r.date+'T00:00:00')>=monthAgo;})},
+    {label:'This Year',  items:all.filter(function(r){return r.date&&r.date.startsWith(yrS)&&new Date(r.date+'T00:00:00')<monthAgo;})},
+    {label:'Older',      items:all.filter(function(r){return r.date&&!r.date.startsWith(yrS);})},
+  ];
+  var html='';
+  groups.forEach(function(g){
+    if(!g.items.length)return;
+    html+='<div class="timeline-group-label">'+g.label+'</div>';
+    html+=g.items.map(function(r){return r._k==='ev'?eventHtml(r,false):symHtml(r,false);}).join('');
+  });
+  document.getElementById('recent-list').innerHTML=html||emptyHtml('No entries yet.');
+
+  // Chart -- filter-aware
+  var lb=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var chartEv=dashFilter==='symptom'?[]:filteredEv;
+  var chartSy=dashFilter==='medication'?[]:filteredSy;
+  // For year/month/total filters, show all-year breakdown; for medication/symptom show all years
+  var chartEvSrc=(dashFilter&&dashFilter!=='total'&&dashFilter!=='year'&&dashFilter!=='month')?chartEv:evY;
+  var chartSySrc=(dashFilter&&dashFilter!=='total'&&dashFilter!=='year'&&dashFilter!=='month')?chartSy:syY;
+  if(dashFilter==='medication')  {chartEvSrc=filteredEv;chartSySrc=[];}
+  if(dashFilter==='symptom')     {chartEvSrc=[];chartSySrc=filteredSy;}
+
+  var evM=lb.map(function(_,i){return chartEvSrc.filter(function(e){return new Date((e.date||'')+'T00:00:00').getMonth()===i;}).length;});
+  var syM=lb.map(function(_,i){return chartSySrc.filter(function(s){return new Date((s.date||'')+'T00:00:00').getMonth()===i;}).length;});
+
+  var chartTitleEl=document.getElementById('dash-chart-title');
+  if(chartTitleEl)chartTitleEl.textContent=dashFilter?('📊 '+filterLabels[dashFilter]+' by Month'):'📊 This Year at a Glance';
+
+  if(dChart)dChart.destroy();
+  dChart=new Chart(document.getElementById('dashChart'),{type:'bar',data:{labels:lb,datasets:[{label:'Medical',data:evM,backgroundColor:'#95c9aa',borderRadius:4},{label:'Symptoms',data:syM,backgroundColor:'#e8aec4',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:12,font:{family:'DM Sans'}}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+}
+
+
+// -- HISTORY (enhanced search) -------------------------------------
+function setHistChip(type,el){
+  histChip=type;
+  document.querySelectorAll('#hist-chip-row .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');
+  document.getElementById('hist-type').value=type==='all'?'':type;
+  renderHistory();
+}
+function syncHistType(){
+  const t=document.getElementById('hist-type').value;
+  histChip=t||'all';
+  document.querySelectorAll('#hist-chip-row .chip').forEach(c=>c.classList.remove('active'));
+  const chips=document.querySelectorAll('#hist-chip-row .chip');
+  const target=t?Array.from(chips).find(c=>c.textContent.toLowerCase().replace(/-/g,'').includes(t.replace(/-/g,''))):chips[0];
+  if(target)target.classList.add('active');
+  renderHistory();
+}
+function renderHistory(){
+  var q=(document.getElementById("hist-search")||{value:""}).value.toLowerCase();
+  var yr=(document.getElementById("hist-year")||{value:""}).value;
+  var tp=histChip==="all"?"":histChip;
+  var f=events.slice();
+  if(tp)f=f.filter(function(e){return e.type===tp;});
+  if(yr)f=f.filter(function(e){return e.date&&e.date.startsWith(yr);});
+  if(q)f=f.filter(function(e){return (e.title+(e.notes||'')+(e.doctor||'')).toLowerCase().indexOf(q)>=0;});
+  f.sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
+  var c=document.getElementById("hist-count");
+  if(c)c.textContent=f.length?("Showing "+f.length+" result"+(f.length!==1?"s":"")):" ";
+  if(!f.length){document.getElementById("history-list").innerHTML=emptyHtml("No events match your search.");return;}
+  // Group into time buckets
+  var now=new Date();
+  var todayStr=now.toISOString().split("T")[0];
+  var weekAgo=new Date(now);weekAgo.setDate(now.getDate()-7);
+  var monthAgo=new Date(now);monthAgo.setDate(now.getDate()-30);
+  var yrS=String(now.getFullYear());
+  var groups=[
+    {label:"Today",       items:f.filter(function(r){return r.date===todayStr;})},
+    {label:"This Week",   items:f.filter(function(r){return r.date<todayStr&&new Date(r.date+"T00:00:00")>=weekAgo;})},
+    {label:"This Month",  items:f.filter(function(r){return new Date(r.date+"T00:00:00")<weekAgo&&new Date(r.date+"T00:00:00")>=monthAgo;})},
+    {label:"This Year",   items:f.filter(function(r){return r.date&&r.date.startsWith(yrS)&&new Date(r.date+"T00:00:00")<monthAgo;})},
+    {label:"Older",       items:f.filter(function(r){return r.date&&!r.date.startsWith(yrS);})},
+  ];
+  var html="";
+  groups.forEach(function(g){
+    if(!g.items.length)return;
+    html+='<div class="timeline-group-label">'+g.label+'</div>';
+    html+=g.items.map(function(e){return eventHtml(e,true);}).join("");
+  });
+  document.getElementById("history-list").innerHTML=html;
+}
+
+// -- SYMPTOMS (enhanced search) ------------------------------------
+function filterSym(f,el){symFilter=f;document.querySelectorAll('#view-symptoms .chip-row .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderSymList();}
+function renderSymList(){
+  const q=(document.getElementById('sym-search')?.value||'').toLowerCase();
+  const yr=document.getElementById('sym-year')?.value||'';
+  let f=symFilter==='all'?symptoms:symptoms.filter(s=>s.severity===symFilter);
+  if(yr)f=f.filter(s=>s.date?.startsWith(yr));
+  if(q)f=f.filter(s=>(s.name+(s.notes||'')+(s.trigger||'')).toLowerCase().includes(q));
+  const c=document.getElementById('sym-count');if(c)c.textContent=f.length?`Showing ${f.length} result${f.length!==1?'s':''}`:' ';
+  document.getElementById('symptom-list').innerHTML=f.length?f.map(s=>symHtml(s)).join(''):emptyHtml('No symptoms match.');
+}
+function renderSymFreq(){
+  const freq={};symptoms.forEach(s=>{freq[s.name]=(freq[s.name]||0)+1;});
+  const s=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  document.getElementById('symptom-freq-row').innerHTML=s.length?s.map(([n,c])=>`<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:.88rem;font-weight:600;">${n}<span class="freq-badge">${c}×</span></div>`).join(''):`<div style="color:var(--muted);">No symptoms logged yet.</div>`;
+}
+
+// -- ANALYSIS -----------------------------------------------------
+function renderAnalysis(){
+  const allDates=[...events,...symptoms].map(r=>r.date?.split('-')[0]).filter(Boolean);
+  const years=[...new Set(allDates)].sort().reverse();
+  const cy=String(new Date().getFullYear());if(!years.includes(cy))years.unshift(cy);
+  const sel=document.getElementById('year-select'),sel_v=sel.value||cy;
+  sel.innerHTML=years.map(y=>`<option value="${y}"${y===sel_v?' selected':''}>${y}</option>`).join('');
+  const yr=sel.value||cy;
+  const yrev=events.filter(e=>e.date?.startsWith(yr)),yrsy=symptoms.filter(s=>s.date?.startsWith(yr));
+  const cnt=t=>yrev.filter(e=>e.type===t).length;
+  document.getElementById('analysis-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${yrev.length+yrsy.length}</div><div class="stat-sub">in ${yr}</div></div>
+    <div class="stat-card"><div class="stat-label">Medical</div><div class="stat-value" style="color:var(--accent)">${yrev.length}</div><div class="stat-sub">events</div></div>
+    <div class="stat-card"><div class="stat-label">Symptoms</div><div class="stat-value" style="color:var(--tag-symptom-t)">${yrsy.length}</div><div class="stat-sub">logged</div></div>
+    <div class="stat-card"><div class="stat-label">Surgeries</div><div class="stat-value" style="color:var(--accent3)">${cnt('surgery')}</div><div class="stat-sub">procedures</div></div>
+    <div class="stat-card"><div class="stat-label">Medications</div><div class="stat-value" style="color:var(--accent2)">${cnt('medication')}</div><div class="stat-sub">tracked</div></div>`;
+  const lb=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const evM=lb.map((_,i)=>yrev.filter(e=>new Date(e.date+'T00:00:00').getMonth()===i).length);
+  const syM=lb.map((_,i)=>yrsy.filter(s=>new Date(s.date+'T00:00:00').getMonth()===i).length);
+  if(mChart)mChart.destroy();
+  mChart=new Chart(document.getElementById('monthChart'),{type:'bar',data:{labels:lb,datasets:[{label:'Medical Events',data:evM,backgroundColor:'#6b9e82',borderRadius:4},{label:'Symptoms',data:syM,backgroundColor:'#d49ab0',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:12}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1}}}}});
+  if(pChart)pChart.destroy();
+  pChart=new Chart(document.getElementById('pieChart'),{type:'doughnut',data:{labels:["Visit","Check-up","Surgery","Medication","Other","Symptom"],datasets:[{data:[cnt('visit'),cnt('checkup'),cnt('surgery'),cnt('medication'),cnt('other'),yrsy.length],backgroundColor:['#6b9e82','#5090a8','#b86868','#b8904a','#7d6aaa','#d49ab0'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:13,font:{family:'DM Sans'}}}}}});
+  const freq={};yrsy.forEach(s=>{freq[s.name]=(freq[s.name]||0)+1;});
+  const topS=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(sChart)sChart.destroy();
+  sChart=new Chart(document.getElementById('symChart'),{type:'bar',data:{labels:topS.map(x=>x[0]),datasets:[{label:'Occurrences',data:topS.map(x=>x[1]),backgroundColor:'#e8aec4',borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  const sc={Mild:0,Moderate:0,Severe:0};yrsy.forEach(s=>{if(sc[s.severity]!==undefined)sc[s.severity]++;});
+  if(sevChart)sevChart.destroy();
+  sevChart=new Chart(document.getElementById('sevChart'),{type:'doughnut',data:{labels:['😌 Mild','😟 Moderate','😰 Severe'],datasets:[{data:[sc.Mild,sc.Moderate,sc.Severe],backgroundColor:['#c8e6d4','#f0e6a0','#f0c8c8'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:13,font:{family:'DM Sans'}}}}}});
+  const allM=evM.map((v,i)=>v+syM[i]),bi=allM.indexOf(Math.max(...allM));
+  const ins=[];
+  if(!yrev.length&&!yrsy.length)ins.push({i:'📭',t:`<strong>No data for ${yr}</strong> -- start logging to see insights.`});
+  else{
+    if(Math.max(...allM)>0)ins.push({i:'📅',t:`<strong>Busiest Month:</strong> ${lb[bi]} (${allM[bi]} entries).`});
+    if(topS.length)ins.push({i:'🤒',t:`<strong>Top Symptom:</strong> ${topS[0][0]} -- ${topS[0][1]}× this year.`});
+    if(sc.Severe>0)ins.push({i:'⚠️',t:`<strong>Severe Symptoms:</strong> ${sc.Severe} episode(s) -- worth discussing with your doctor.`});
+    if(cnt('medication')>0)ins.push({i:'💊',t:`<strong>Medications:</strong> ${cnt('medication')} entries tracked.`});
+    if(cnt('surgery')>0)ins.push({i:'⚕️',t:`<strong>Procedures:</strong> ${cnt('surgery')} on record.`});
+    ins.push({i:'📝',t:`<strong>Summary:</strong> ${yrev.length} medical events + ${yrsy.length} symptoms in ${yr}.`});
+  }
+  document.getElementById('insights-list').innerHTML=ins.map(x=>`<div class="insight-item"><div class="insight-icon">${x.i}</div><div class="insight-text">${x.t}</div></div>`).join('');
+}
+
+// -- PROFILES ------------------------------------------------------
+function renderProfilesView(){
+  var profiles=getProfiles(),c=document.getElementById('profiles-list');
+  if(!c)return;
+  if(!profiles.length){c.innerHTML=emptyHtml('No family members yet. Add one on the right.');return;}
+  var html='';
+  profiles.forEach(function(p,i){
+    var ev=getPD(p.id,'events').length,sy=getPD(p.id,'symptoms').length,isCur=p.id===activeProfileId;
+    var age=p.dob?calcAge(p.dob):'';
+    var ageStr=age?('&nbsp;&middot;&nbsp;'+age+' yrs'):'';
+    var badge=isCur?'<span style="font-size:.72rem;background:#e8f5ee;color:var(--accent);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">ACTIVE</span>':'';
+    var switchBtn=isCur?'<button class="btn-switch current">Active</button>':'<button class="btn-switch" data-switchid="'+p.id+'">Switch</button>';
+    html+='<div class="profile-row">';
+    html+='<div class="profile-row-avatar" style="background:'+colorFor(i)+'">'+initials(p.name)+'</div>';
+    html+='<div class="profile-row-info">';
+    html+='<div class="profile-row-name">'+p.name+badge+'</div>';
+    html+='<div class="profile-row-meta">'+(p.relationship||'Family member')+ageStr+'&nbsp;&middot;&nbsp;'+ev+' event'+(ev!==1?'s':'')+' &middot; '+sy+' symptom'+(sy!==1?'s':'')+'</div>';
+    if(p.email||p.phone){
+      html+='<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">';
+      if(p.email)html+='&#9993; '+p.email+(p.phone?'&nbsp;&nbsp;':'');
+      if(p.phone)html+='&#128222; '+p.phone;
+      html+='</div>';
+    }
+    if(p.notes)html+='<div class="profile-row-notes">'+p.notes+'</div>';
+    html+='</div>';
+    html+='<div class="profile-row-actions">'+switchBtn+'</div>';
+    html+='</div>';
+  });
+  c.innerHTML=html;
+  // Wire switch buttons via event delegation
+  c.addEventListener('click',function(e){
+    var btn=e.target.closest('[data-switchid]');
+    if(btn)switchTo(btn.getAttribute('data-switchid'));
+  },{once:true});
+}
+function calcAge(dob){
+  if(!dob)return'';
+  const d=new Date(dob),n=new Date();
+  let a=n.getFullYear()-d.getFullYear();
+  if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;
+  return a<1?'<1':String(a);
+}
+function switchTo(id){setActiveId(id);loadProfile();updateChip();populateYears();toast('Switched profile');showView('dashboard');}
+function addProfileFromManage(){
+  var name=document.getElementById('new-profile-name').value.trim();
+  var rel=document.getElementById('new-profile-rel').value;
+  var dob=document.getElementById('new-profile-dob')?document.getElementById('new-profile-dob').value:'';
+  var email=(document.getElementById('new-profile-email')||{value:''}).value.trim().toLowerCase();
+  var phone=(document.getElementById('new-profile-phone')||{value:''}).value.trim();
+  var notes=document.getElementById('new-profile-notes')?document.getElementById('new-profile-notes').value.trim():'';
+  var familyErr=document.getElementById('family-add-error');
+  if(familyErr)familyErr.textContent='';
+  if(!name){if(familyErr)familyErr.textContent='Please enter a name.';return;}
+  var hasEmail=email.length>0&&email.includes('@');
+  var hasPhone=phone.replace(/\D/g,'').length>=6;
+  if(!hasEmail&&!hasPhone){if(familyErr)familyErr.textContent='Please enter at least one: a valid email or phone number.';return;}
+  if(email.length>0&&!hasEmail){if(familyErr)familyErr.textContent='That email looks invalid — please check the format.';return;}
+  if(phone.length>0&&!hasPhone){if(familyErr)familyErr.textContent='That phone number looks too short — please check it.';return;}
+  var profiles=getProfiles();
+  if(profiles.find(function(p){return p.name.toLowerCase()===name.toLowerCase();})){if(familyErr)familyErr.textContent='A profile with that name already exists.';return;}
+  var np={id:'p_'+Date.now(),name:name,relationship:rel,dob:dob,email:email,phone:phone,notes:notes};
+  profiles.push(np);saveProfiles(profiles);
+  ['new-profile-name','new-profile-rel','new-profile-email','new-profile-phone','new-profile-notes'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.value='';
+  });
+  if(document.getElementById('new-profile-dob'))document.getElementById('new-profile-dob').value='';
+  toast('Added '+name+' to your family!');renderProfilesView();
+}
+function deleteCurrentProfile(){
+  const profiles=getProfiles();if(profiles.length<=1){toast('⚠️ Cannot delete the only profile.');return;}
+  const p=profiles.find(x=>x.id===activeProfileId);if(!confirm(`Delete "${p?.name}" and ALL data?`))return;
+  localStorage.removeItem(pKey(activeProfileId,'events'));localStorage.removeItem(pKey(activeProfileId,'symptoms'));
+  const upd=profiles.filter(x=>x.id!==activeProfileId);saveProfiles(upd);setActiveId(upd[0].id);loadProfile();
+  updateChip();toast('🗑 Deleted. Switched to '+upd[0].name);showView('dashboard');
+}
+
+// -- SHARE ---------------------------------------------------------
+let shareCtx='recent';
+const shareOpts={recent:'Recent Activity',history:'Medical History',symptoms:'Symptom Log',analysis:'Yearly Report'};
+
+function buildShareText(ctx){
+  const p=getProfiles().find(x=>x.id===activeProfileId);
+  const yr=document.getElementById('year-select')?.value||String(new Date().getFullYear());
+  const lines=[`🏥 MedLog -- Health Summary for ${p?.name||'User'}`,`Date: ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}`,``];
+  if(ctx==='recent'||ctx==='history'){
+    const src=ctx==='recent'?[...events].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,10):events;
+    lines.push(`📋 MEDICAL EVENTS (${src.length})`,`${'-'.repeat(34)}`);
+    src.forEach(e=>lines.push(`• [${e.type.toUpperCase()}] ${fmtDate(e.date)} -- ${e.title}${e.doctor?' ('+e.doctor+')':''}${e.notes?' | '+e.notes:''}`));
+  }
+  if(ctx==='symptoms'){
+    lines.push(`🤒 SYMPTOMS (${symptoms.length})`,`${'-'.repeat(34)}`);
+    symptoms.slice(0,20).forEach(s=>lines.push(`• ${fmtDate(s.date)} -- ${s.name} [${s.severity}]${s.trigger?' | '+s.trigger:''}${s.notes?' | '+s.notes:''}`));
+  }
+  if(ctx==='analysis'){
+    const ye=events.filter(e=>e.date?.startsWith(yr)),ys=symptoms.filter(s=>s.date?.startsWith(yr));
+    const c=t=>ye.filter(e=>e.type===t).length;
+    const freq={};ys.forEach(s=>{freq[s.name]=(freq[s.name]||0)+1;});
+    const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    lines.push(`📊 YEARLY REPORT -- ${yr}`,`${'-'.repeat(34)}`);
+    lines.push(`Total: ${ye.length+ys.length} records | Medical: ${ye.length} | Symptoms: ${ys.length}`);
+    lines.push(`Visits+Check-ups: ${c('visit')+c('checkup')} | Surgeries: ${c('surgery')} | Meds: ${c('medication')}`);
+    if(top.length)lines.push(`Top symptoms: ${top.map(([n,c])=>`${n} (${c}×)`).join(', ')}`);
+    lines.push(``,`-- Shared via MedLog`);
+  }
+  return lines.join('\n');
+}
+
+function openShare(ctx){
+  shareCtx=ctx;
+  const p=getProfiles().find(x=>x.id===activeProfileId);
+  document.getElementById('share-what-btns').innerHTML=Object.entries(shareOpts).map(([k,v])=>`<button class="${k===ctx?'active':''}" onclick="setShareCtx('${k}',this)">${v}</button>`).join('');
+  document.getElementById('share-scope').innerHTML=`Sharing <strong>${shareOpts[ctx]}</strong> for <strong>${p?.name||'current profile'}</strong>`;
+  document.getElementById('share-modal').classList.add('open');
+}
+function setShareCtx(ctx,el){shareCtx=ctx;document.querySelectorAll('.share-what button').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('share-scope').innerHTML=`Sharing <strong>${shareOpts[ctx]}</strong>`;}
+function closeShare(){document.getElementById('share-modal').classList.remove('open');}
+function closeShareOutside(e){if(e.target===document.getElementById('share-modal'))closeShare();}
+
+function doShare(method){
+  const text=buildShareText(shareCtx);
+  const p=getProfiles().find(x=>x.id===activeProfileId);
+  const subj=encodeURIComponent(`MedLog Health Summary -- ${p?.name||'My Profile'}`);
+  const body=encodeURIComponent(text);
+  if(method==='gmail')window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subj}&body=${body}`,'_blank');
+  else if(method==='whatsapp')window.open(`https://wa.me/?text=${body}`,'_blank');
+  else if(method==='sms')window.open(`sms:?body=${body}`,'_blank');
+  else if(method==='print'){closeShare();setTimeout(()=>window.print(),300);}
+  else if(method==='copy'){navigator.clipboard.writeText(text).then(()=>toast('📋 Copied!')).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Copied!');});}
+  else if(method==='native'){if(navigator.share)navigator.share({title:'MedLog',text}).catch(()=>{});else toast('Use Copy or Gmail above.');}
+}
+
+// -- TOAST ---------------------------------------------------------
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+// -- SEED ----------------------------------------------------------
+function seedDemo(){
+  const y=String(new Date().getFullYear());
+  events=[{id:1,type:'checkup',date:`${y}-01-15`,title:'Annual Physical Exam',doctor:'Dr. Chen / Family Health',dosage:'',notes:'All vitals normal. BP 120/80.'},{id:2,type:'medication',date:`${y}-02-03`,title:'Ibuprofen 200mg',doctor:'',dosage:'200mg as needed, max 3x daily',notes:'Lower back pain.'},{id:3,type:'visit',date:`${y}-03-20`,title:'Dermatology Consultation',doctor:'Dr. Patel / SkinCare',dosage:'',notes:'Mole check -- benign.'},{id:4,type:'medication',date:`${y}-04-10`,title:'Amoxicillin 500mg',doctor:'Dr. Chen',dosage:'500mg 3x daily for 7 days',notes:'Sinus infection.'},{id:5,type:'checkup',date:`${y}-06-01`,title:'Blood Panel & Cholesterol',doctor:'LabCorp',dosage:'',notes:'LDL slightly elevated.'},{id:6,type:'surgery',date:`${y}-07-14`,title:'Wisdom Tooth Extraction',doctor:'Dr. Adams / City Dental',dosage:'',notes:'Lower left removed.'},{id:7,type:'visit',date:`${y}-09-05`,title:'Knee Pain Follow-up',doctor:'Dr. Rivera / Ortho',dosage:'',notes:'MRI ordered. Mild tendinitis.'},{id:8,type:'other',date:`${y}-11-02`,title:'Nutritionist Supplement Review',doctor:'',dosage:'',notes:'Reviewed supplement stack.'}];
+  symptoms=[{id:101,name:'Headache',date:`${y}-01-20`,severity:'Mild',duration:'A few hours',trigger:'Screen time',notes:''},{id:102,name:'Back Pain',date:`${y}-02-06`,severity:'Moderate',duration:'Multiple days',trigger:'Physical activity',notes:'Gym related.'},{id:103,name:'Headache',date:`${y}-03-11`,severity:'Mild',duration:'Under 1 hour',trigger:'Stress',notes:''},{id:104,name:'Stomach Ache',date:`${y}-04-19`,severity:'Mild',duration:'A few hours',trigger:'Diet / Food',notes:'After lunch.'},{id:105,name:'Fatigue',date:`${y}-05-03`,severity:'Moderate',duration:'All day',trigger:'Lack of sleep',notes:''},{id:106,name:'Knee Pain',date:`${y}-06-22`,severity:'Moderate',duration:'Multiple days',trigger:'Physical activity',notes:'After long run.'},{id:107,name:'Headache',date:`${y}-07-08`,severity:'Severe',duration:'All day',trigger:'Stress',notes:'Work deadline.'},{id:108,name:'Sore Throat',date:`${y}-08-15`,severity:'Mild',duration:'Multiple days',trigger:'',notes:'Cold season.'},{id:109,name:'Back Pain',date:`${y}-09-30`,severity:'Mild',duration:'A few hours',trigger:'Physical activity',notes:''},{id:110,name:'Fatigue',date:`${y}-10-12`,severity:'Moderate',duration:'All day',trigger:'Lack of sleep',notes:''}];
+}
+
+// -- BOOT ----------------------------------------------------------
+function boot(){
+  // Version guard - clear corrupted state from old versions
+  try {
+    var ver = localStorage.getItem('ml_version');
+    if(ver !== '1.5') {
+      // Preserve user accounts and profiles but reset session
+      localStorage.removeItem('ml_session');
+      localStorage.removeItem('ml_active_profile');
+      localStorage.setItem('ml_version','1.5');
+    }
+  } catch(e) {}
+  document.getElementById('app').style.display='none';
+  document.getElementById('profile-screen').style.display='none';
+  ['screen-signup','screen-otp','screen-login','screen-quicklogin'].forEach(s=>{const el=document.getElementById(s);el.classList.remove('visible');el.style.display='none';});
+  const sess=getSession();
+  if(sess){
+    const users=getUsers(),idx=users.findIndex(u=>u.id===sess.id);
+    document.getElementById('ql-avatar').style.background=AV[Math.max(0,idx)%AV.length];
+    document.getElementById('ql-avatar').textContent=initials(sess.first+' '+sess.last);
+    document.getElementById('ql-name').textContent=sess.first+' '+sess.last;
+    document.getElementById('ql-email').textContent=sess.email;
+    document.getElementById('ql-fname').textContent=sess.first;
+    showScreen('screen-quicklogin');
+  } else {
+    showScreen(getUsers().length?'screen-login':'screen-signup');
+  }
+}
+boot();
+</script>
+<footer style="background:var(--ink);color:rgba(255,255,255,.28);text-align:center;padding:12px 1.5rem;font-size:.73rem;font-family:DM Sans,sans-serif;">&copy; 2026 MedLog &middot; All rights reserved &middot; Private &amp; Confidential &middot; Unauthorised reproduction prohibited</footer>
+<style>body{-webkit-user-select:none;user-select:none;}input,textarea,select{-webkit-user-select:text;user-select:text;}.wm-layer{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden;}.wm-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-35deg);font-size:clamp(2rem,6vw,4.5rem);font-weight:900;color:rgba(45,106,79,.09);white-space:nowrap;letter-spacing:.15em;font-family:Playfair Display,serif;text-transform:uppercase;user-select:none;-webkit-user-select:none;}</style>
+<script charset="utf-8">document.addEventListener("contextmenu",function(e){e.preventDefault();return false;});document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&(e.key==="u"||e.key==="s")){e.preventDefault();}if(e.key==="F12")e.preventDefault();});</script>
+</body>
+</html>
