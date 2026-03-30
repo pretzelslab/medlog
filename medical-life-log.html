@@ -6,6 +6,7 @@
 <title>MedLog -- Personal Health Journal</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--bg:#f7f4ef;--card:#fff;--ink:#1a1a2e;--muted:#6b6b80;--accent:#2d6a4f;--accent2:#b7791f;--accent3:#c0392b;--tag-visit:#edf4f0;--tag-visit-t:#4e7d64;--tag-med:#f6f1e8;--tag-med-t:#8a6d40;--tag-surgery:#f4eded;--tag-surgery-t:#8f4f4f;--tag-checkup:#eaf1f5;--tag-checkup-t:#4d7285;--tag-other:#f0edf6;--tag-other-t:#6f6590;--tag-symptom:#f4edf2;--tag-symptom-t:#7e5472;--border:#e2ddd6;--shadow:0 4px 24px rgba(26,26,46,0.07);}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -226,49 +227,22 @@ textarea{resize:vertical;min-height:72px;}
   <div class="auth-sub">Your personal health journal</div>
   <div class="auth-card">
     <h2>Create your account</h2>
-    <p>One-time setup. Your data stays on your device.</p>
+    <p>Your data is securely stored in the cloud — access from any device.</p>
     <div class="auth-row">
       <div class="auth-field"><label>First Name</label><input type="text" id="su-first" placeholder="Jane"></div>
       <div class="auth-field"><label>Last Name</label><input type="text" id="su-last" placeholder="Smith"></div>
     </div>
     <div class="auth-field">
-      <label>Email Address <span style="font-weight:400;color:var(--muted);font-size:.74rem;">(optional if phone provided)</span></label>
-      <input type="email" id="su-email" placeholder="jane@example.com" oninput="onContactInput()">
+      <label>Email Address</label>
+      <input type="email" id="su-email" placeholder="jane@example.com">
     </div>
     <div class="auth-field">
-      <label>Phone Number <span style="font-weight:400;color:var(--muted);font-size:.74rem;">(optional if email provided)</span></label>
-      <input type="tel" id="su-phone" placeholder="+1 555 000 0000" oninput="onContactInput()">
-      <div id="phone-tip" style="display:none;margin-top:7px;background:#e8f5ee;border:1px solid #b7e4c7;border-radius:9px;padding:9px 12px;font-size:.78rem;color:#1a6335;line-height:1.5;">
-        💬 <strong>Tip:</strong> Adding your phone number lets you share your health log directly via WhatsApp or SMS -- handy for sending records to your doctor or family.
-      </div>
-    </div>
-    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:9px 12px;font-size:.78rem;color:#0369a1;margin-bottom:.5rem;line-height:1.5;">
-      ℹ️ Either an email or phone number is required to create your account.
+      <label>Password <span style="font-weight:400;color:var(--muted);font-size:.74rem;">(min 6 characters)</span></label>
+      <input type="password" id="su-password" placeholder="Choose a password" onkeydown="if(event.key==='Enter')submitSignup()">
     </div>
     <div class="auth-error" id="su-error"></div>
     <button class="auth-btn" onclick="submitSignup()">Create Account</button>
     <div class="auth-link">Already have an account? <a onclick="showScreen('screen-login')">Sign in</a></div>
-  </div>
-</div>
-
-<!-- OTP -->
-<div class="auth-screen" id="screen-otp">
-  <div class="auth-logo">MedLog ✦</div>
-  <div class="auth-sub">Verify your phone</div>
-  <div class="auth-card">
-    <h2>Enter verification code</h2>
-    <p id="otp-desc">We sent a 4-digit code to your phone.</p>
-    <div class="otp-demo">📱 Demo mode -- your code is: <strong id="otp-display">----</strong></div>
-    <div style="text-align:center;font-size:.8rem;color:var(--muted);margin-bottom:.5rem;">Enter the 4-digit code below</div>
-    <div class="otp-row">
-      <input type="text" maxlength="1" id="otp0" oninput="otpNext(0)" onkeydown="otpBack(event,0)">
-      <input type="text" maxlength="1" id="otp1" oninput="otpNext(1)" onkeydown="otpBack(event,1)">
-      <input type="text" maxlength="1" id="otp2" oninput="otpNext(2)" onkeydown="otpBack(event,2)">
-      <input type="text" maxlength="1" id="otp3" oninput="otpNext(3)" onkeydown="otpBack(event,3)">
-    </div>
-    <div class="auth-error" id="otp-error"></div>
-    <button class="auth-btn" onclick="verifyOtp()">Verify &amp; Continue</button>
-    <div class="auth-link"><a onclick="resendOtp()">Resend code</a>&nbsp;·&nbsp;<a onclick="showScreen('screen-signup')">Back</a></div>
   </div>
 </div>
 
@@ -278,10 +252,11 @@ textarea{resize:vertical;min-height:72px;}
   <div class="auth-sub">Welcome back</div>
   <div class="auth-card">
     <h2>Sign in</h2>
-    <p>Enter your email or phone number to continue.</p>
-    <div class="auth-field"><label>Email or Phone</label><input type="text" id="li-identifier" placeholder="jane@example.com or +1 555…" onkeydown="if(event.key==='Enter')submitLogin()"></div>
+    <p>Enter your email and password to continue.</p>
+    <div class="auth-field"><label>Email</label><input type="email" id="li-email" placeholder="jane@example.com"></div>
+    <div class="auth-field"><label>Password</label><input type="password" id="li-password" placeholder="Your password" onkeydown="if(event.key==='Enter')submitLogin()"></div>
     <div class="auth-error" id="li-error"></div>
-    <button class="auth-btn" onclick="submitLogin()">Continue</button>
+    <button class="auth-btn" onclick="submitLogin()">Sign In</button>
     <div class="auth-link">New here? <a onclick="showScreen('screen-signup')">Create account</a></div>
   </div>
 </div>
@@ -477,6 +452,7 @@ textarea{resize:vertical;min-height:72px;}
     <h2>Yearly Health Report</h2>
     <select id="year-select" onchange="renderAnalysis()"></select>
     <button class="btn-primary btn-sm" style="margin-top:0;margin-left:auto;" onclick="openShare('analysis')">📤 Share Report</button>
+    <button class="btn-primary btn-sm" style="margin-top:0;background:#0c6278;" onclick="openEmailReport()">📧 Email Report</button>
   </div>
   <div class="stats-row" id="analysis-stats"></div>
   <div class="two-col">
@@ -590,203 +566,223 @@ textarea{resize:vertical;min-height:72px;}
   </div>
 </div>
 
+<!-- EMAIL REPORT MODAL -->
+<div class="modal-overlay" id="email-modal" onclick="closeEmailModalOutside(event)">
+  <div class="modal" style="max-width:620px;width:100%;">
+    <button class="modal-close" onclick="closeEmailModal()">✕</button>
+    <div class="modal-title">📧 Email Health Report</div>
+    <div class="modal-sub" id="email-modal-sub">Formatted report ready to send.</div>
+    <div id="email-preview-wrap" style="border:1.5px solid var(--border);border-radius:12px;overflow:auto;max-height:360px;background:#f7f4ef;margin-bottom:1rem;font-size:13px;"></div>
+    <div id="email-copy-hint" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:.82rem;color:#166534;margin-bottom:1rem;line-height:1.5;"></div>
+    <div style="display:flex;gap:.7rem;flex-wrap:wrap;">
+      <button class="btn-primary" style="flex:1;min-width:170px;" onclick="copyAndOpenGmail()">📋 Copy &amp; Open Gmail</button>
+      <button class="btn-primary" style="flex:1;min-width:130px;background:#6b6b80;" onclick="copyEmailHtml()">📄 Copy HTML</button>
+    </div>
+    <div style="margin-top:.8rem;font-size:.78rem;color:var(--muted);line-height:1.6;">
+      <strong>How to send:</strong> Click <em>Copy &amp; Open Gmail</em> → Gmail opens → paste (Ctrl+V / ⌘V) into the compose body → the formatted report appears → add recipient &amp; send.
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script charset="utf-8">
-// == CONSTANTS -----------------------------------------------------
+// ============================================================
+// SUPABASE SETUP
+// Replace YOUR_ANON_KEY_HERE with the key from:
+// Supabase Dashboard > hfvfxiqfmcphctjbenul > Settings > API > anon/public
+// ============================================================
+const SUPABASE_URL = 'https://hfvfxiqfmcphctjbenul.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';
+const { createClient } = window.supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ============================================================
+// CONSTANTS
+// ============================================================
 const AV=['#2d6a4f','#0c6278','#c0392b','#b7791f','#6b21a8','#9d174d','#1a4d7a','#2d5016','#7c3d12'];
 const colorFor=i=>AV[i%AV.length];
 const initials=n=>n.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2);
 const fmtDate=d=>{if(!d)return'';return new Date(d+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});};
 
-// -- AUTH ----------------------------------------------------------
-const getUsers=()=>JSON.parse(localStorage.getItem('ml_users')||'[]');
-const saveUsers=u=>localStorage.setItem('ml_users',JSON.stringify(u));
-const getSession=()=>JSON.parse(localStorage.getItem('ml_session')||'null');
-const setSession=u=>localStorage.setItem('ml_session',JSON.stringify(u));
-const clearSession=()=>{localStorage.removeItem('ml_session');localStorage.removeItem('ml_active_profile');};
+// ============================================================
+// STATE
+// ============================================================
+let currentUser=null,activeProfileId=null,events=[],symptoms=[];
+let histChip='all',symFilter='all',currentSev=1;
+let dChart,mChart,pChart,sChart,sevChart;
 
-let pendingSignup=null,genOtp_='';
-const genOtp=()=>String(Math.floor(1000+Math.random()*9000));
-
+// ============================================================
+// AUTH
+// ============================================================
 function showScreen(id){
-  ['screen-signup','screen-otp','screen-login','screen-quicklogin'].forEach(s=>{
+  ['screen-signup','screen-login','screen-quicklogin'].forEach(s=>{
     const el=document.getElementById(s);el.classList.remove('visible');el.style.display='none';
   });
   document.getElementById('profile-screen').style.display='none';
   const t=document.getElementById(id);t.classList.add('visible');t.style.display='flex';
 }
 
-function onContactInput(){
-  const phone=document.getElementById('su-phone').value.trim();
-  const tip=document.getElementById('phone-tip');
-  if(tip)tip.style.display=phone.length>0?'block':'none';
-}
-function onFamilyContactInput(){
-  const phone=(document.getElementById('new-profile-phone')||{value:''}).value.trim();
-  const tip=document.getElementById('family-phone-tip');
-  if(tip)tip.style.display=phone.length>0?'block':'none';
-  const err=document.getElementById('family-add-error');
-  if(err)err.textContent='';
-}
-
-function submitSignup(){
+async function submitSignup(){
   const first=document.getElementById('su-first').value.trim();
   const last=document.getElementById('su-last').value.trim();
   const email=document.getElementById('su-email').value.trim().toLowerCase();
-  const phone=document.getElementById('su-phone').value.trim();
+  const password=document.getElementById('su-password').value;
   const err=document.getElementById('su-error');
   if(!first||!last){err.textContent='Please enter your full name.';return;}
-  const hasEmail=email.length>0&&email.includes('@');
-  const hasPhone=phone.length>=6;
-  if(!hasEmail&&!hasPhone){err.textContent='Please enter either a valid email or a phone number.';return;}
-  if(email.length>0&&!hasEmail){err.textContent='That email looks invalid, please check the format.';return;}
-  if(phone.length>0&&!hasPhone){err.textContent='That phone number looks too short, please check it.';return;}
-  const users=getUsers();
-  if(hasEmail&&users.find(u=>u.email===email)){err.textContent='An account with this email already exists. Sign in instead.';return;}
-  if(hasPhone&&!hasEmail&&users.find(u=>u.phone===phone)){err.textContent='An account with this phone already exists. Sign in instead.';return;}
+  if(!email||!email.includes('@')){err.textContent='Please enter a valid email.';return;}
+  if(password.length<6){err.textContent='Password must be at least 6 characters.';return;}
+  err.textContent='Creating account...';
+  const {data,error}=await db.auth.signUp({email,password,options:{data:{first_name:first,last_name:last}}});
+  if(error){err.textContent=error.message;return;}
   err.textContent='';
-  genOtp_=genOtp();pendingSignup={first,last,email,phone};
-  const otpMsg=hasPhone?'We sent a 4-digit code to '+phone+'.':'Verify your account - enter the code shown below.';
-  document.getElementById('otp-desc').textContent=otpMsg;
-  document.getElementById('otp-display').textContent=genOtp_;
-  showScreen('screen-otp');document.getElementById('otp0').focus();
+  currentUser=data.user;
+  toast('Welcome, '+first+'!');
+  await launchApp(data.user);
 }
 
-function otpNext(i){if(document.getElementById('otp'+i).value&&i<3)document.getElementById('otp'+(i+1)).focus();}
-function otpBack(e,i){if(e.key==='Backspace'&&!document.getElementById('otp'+i).value&&i>0)document.getElementById('otp'+(i-1)).focus();}
-function resendOtp(){genOtp_=genOtp();document.getElementById('otp-display').textContent=genOtp_;toast('New code: '+genOtp_);}
-
-function verifyOtp(){
-  const entered=[0,1,2,3].map(i=>document.getElementById('otp'+i).value).join('');
-  if(entered.length<4){document.getElementById('otp-error').textContent='Enter all 4 digits.';return;}
-  if(entered!==genOtp_){document.getElementById('otp-error').textContent='Incorrect code. Try again.';return;}
-  document.getElementById('otp-error').textContent='';
-  const users=getUsers();
-  const u={id:'u_'+Date.now(),...pendingSignup,created:new Date().toISOString()};
-  users.push(u);saveUsers(users);setSession(u);pendingSignup=null;
-  toast('✅ Welcome, '+u.first+'!');launchApp(u);
-}
-
-function submitLogin(){
-  const id=document.getElementById('li-identifier').value.trim().toLowerCase();
+async function submitLogin(){
+  const email=document.getElementById('li-email').value.trim().toLowerCase();
+  const password=document.getElementById('li-password').value;
   const err=document.getElementById('li-error');
-  if(!id){err.textContent='Please enter your email or phone.';return;}
-  const u=getUsers().find(function(x){
-    return (x.email&&x.email===id)||(x.phone&&(x.phone===id||x.phone.replace(/ /g,'')===id.replace(/ /g,'')));
-  });
-  if(!u){err.textContent='No account found for that email or phone. Please sign up.';return;}
-  err.textContent='';setSession(u);toast('Welcome back, '+u.first+'!');launchApp(u);
+  if(!email||!password){err.textContent='Please enter your email and password.';return;}
+  err.textContent='Signing in...';
+  const {data,error}=await db.auth.signInWithPassword({email,password});
+  if(error){err.textContent='Incorrect email or password.';return;}
+  err.textContent='';
+  currentUser=data.user;
+  const meta=data.user.user_metadata||{};
+  toast('Welcome back, '+(meta.first_name||'there')+'!');
+  await launchApp(data.user);
 }
 
-function quickLogin(){launchApp(getSession());}
-
-function signOut(){clearSession();document.getElementById('app').style.display='none';boot();}
-
-// -- PROFILE STORE -------------------------------------------------
-const getProfiles=()=>JSON.parse(localStorage.getItem('ml_profiles')||'[]');
-const saveProfiles=p=>localStorage.setItem('ml_profiles',JSON.stringify(p));
-const getActiveId=()=>localStorage.getItem('ml_active_profile')||null;
-const setActiveId=id=>localStorage.setItem('ml_active_profile',id);
-const pKey=(id,t)=>`ml_${id}_${t}`;
-const getPD=(id,t)=>JSON.parse(localStorage.getItem(pKey(id,t))||'[]');
-const savePD=(id,t,d)=>localStorage.setItem(pKey(id,t),JSON.stringify(d));
-
-let activeProfileId=null,events=[],symptoms=[];
-function loadProfile(){
-  activeProfileId=getActiveId();
-  if(!activeProfileId)return;
-  events=getPD(activeProfileId,'events');
-  symptoms=getPD(activeProfileId,'symptoms');
+async function quickLogin(){
+  const {data}=await db.auth.getSession();
+  if(data.session){currentUser=data.session.user;await launchApp(currentUser);}
+  else showScreen('screen-login');
 }
-function saveData(){if(!activeProfileId)return;savePD(activeProfileId,'events',events);savePD(activeProfileId,'symptoms',symptoms);}
 
-// -- LAUNCH --------------------------------------------------------
-function launchApp(user){
-  ['screen-signup','screen-otp','screen-login','screen-quicklogin'].forEach(s=>{
+async function signOut(){
+  await db.auth.signOut();
+  currentUser=null;activeProfileId=null;events=[];symptoms=[];
+  document.getElementById('app').style.display='none';
+  document.getElementById('profile-screen').style.display='none';
+  showScreen('screen-login');
+}
+
+// ============================================================
+// PROFILES
+// ============================================================
+async function getProfiles(){
+  if(!currentUser)return[];
+  const {data}=await db.from('ml_profiles').select('*').eq('user_id',currentUser.id).order('created_at');
+  return data||[];
+}
+
+async function launchApp(user){
+  currentUser=user;
+  ['screen-signup','screen-login','screen-quicklogin'].forEach(s=>{
     const el=document.getElementById(s);el.classList.remove('visible');el.style.display='none';
   });
-  const profiles=getProfiles();
-  const lastId=getActiveId();
-  if(lastId&&profiles.find(p=>p.id===lastId)){
-    loadProfile();
-    if(!events.length&&!symptoms.length){seedDemo();saveData();}
-    document.getElementById('profile-screen').style.display='none';
-    document.getElementById('app').style.display='block';
-    updateChip();initForms();populateYears();showView('dashboard');
-  } else {
-    showProfileScreen(user);
-  }
+  const profiles=await getProfiles();
+  if(!profiles.length){await showProfileScreen(user);return;}
+  const savedId=localStorage.getItem('ml_active_profile_'+user.id);
+  const found=profiles.find(p=>p.id===savedId);
+  if(found)await selectProfile(found.id);
+  else await showProfileScreen(user);
 }
 
-function showProfileScreen(user){
+async function showProfileScreen(user){
   document.getElementById('app').style.display='none';
   const ps=document.getElementById('profile-screen');ps.style.display='flex';
-  document.getElementById('ps-greeting').textContent=`Signed in as ${user.first} ${user.last} · ${user.email}`;
-  renderPickerGrid();
+  const meta=user.user_metadata||{};
+  document.getElementById('ps-greeting').textContent='Signed in as '+(meta.first_name||'')+' '+(meta.last_name||'')+' \u00b7 '+user.email;
+  await renderPickerGrid();
 }
 
-function renderPickerGrid(){
-  const profiles=getProfiles();const g=document.getElementById('ps-grid');
-  if(!profiles.length){g.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:.88rem;padding:1rem;">No profiles yet -- add one below.</div>`;return;}
+async function renderPickerGrid(){
+  const profiles=await getProfiles();
+  const g=document.getElementById('ps-grid');
+  if(!profiles.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:.88rem;padding:1rem;">No profiles yet \u2014 add one below.</div>';return;}
+  const counts=await Promise.all(profiles.map(async p=>{
+    const [evR,syR]=await Promise.all([
+      db.from('ml_events').select('*',{count:'exact',head:true}).eq('profile_id',p.id),
+      db.from('ml_symptoms').select('*',{count:'exact',head:true}).eq('profile_id',p.id),
+    ]);
+    return (evR.count||0)+(syR.count||0);
+  }));
   g.innerHTML=profiles.map((p,i)=>{
-    const t=getPD(p.id,'events').length+getPD(p.id,'symptoms').length;
-    return `<button class="profile-btn" onclick="selectProfile('${p.id}')">
-      <div class="profile-avatar" style="background:${colorFor(i)}">${initials(p.name)}</div>
-      <div class="profile-name">${p.name}</div>
-      <div class="profile-count">${p.relationship?p.relationship+' · ':''}${t} record${t!==1?'s':''}</div>
-    </button>`;
+    const t=counts[i];
+    return '<button class="profile-btn" data-profileid="'+p.id+'"><div class="profile-avatar" style="background:'+colorFor(i)+'">'+initials(p.name)+'</div><div class="profile-name">'+p.name+'</div><div class="profile-count">'+(p.relationship?p.relationship+' \u00b7 ':'')+t+' record'+(t!==1?'s':'')+'</div></button>';
   }).join('');
+  g.onclick=async e=>{const btn=e.target.closest('[data-profileid]');if(btn)await selectProfile(btn.getAttribute('data-profileid'));};
 }
 
-function createProfile(){
-  const inp=document.getElementById('ps-name-input'),name=inp.value.trim();
+async function createProfile(){
+  const inp=document.getElementById('ps-name-input');
+  const name=inp.value.trim();
   const err=document.getElementById('ps-error');
   if(!name){err.textContent='Please enter a name.';return;}
-  const profiles=getProfiles();
-  if(profiles.find(p=>p.name.toLowerCase()===name.toLowerCase())){err.textContent='Name already exists.';return;}
   err.textContent='';
-  const np={id:'p_'+Date.now(),name,relationship:''};
-  profiles.push(np);saveProfiles(profiles);inp.value='';
-  selectProfile(np.id);
+  const {data,error}=await db.from('ml_profiles').insert({user_id:currentUser.id,name,relationship:''}).select().single();
+  if(error){err.textContent='Could not create profile: '+error.message;return;}
+  inp.value='';
+  await selectProfile(data.id);
 }
 
-function selectProfile(id){
-  setActiveId(id);loadProfile();
-  if(!events.length&&!symptoms.length){seedDemo();saveData();}
+async function selectProfile(id){
+  activeProfileId=id;
+  localStorage.setItem('ml_active_profile_'+currentUser.id,id);
+  await loadProfile();
+  if(!events.length&&!symptoms.length)await seedDemo();
   document.getElementById('profile-screen').style.display='none';
   document.getElementById('app').style.display='block';
-  updateChip();initForms();populateYears();showView('dashboard');
+  await updateChip();
+  initForms();populateYears();showView('dashboard');
 }
 
-function updateChip(){
-  const profiles=getProfiles(),p=profiles.find(x=>x.id===activeProfileId);
-  if(!p)return;
+async function updateChip(){
+  const profiles=await getProfiles();
+  const p=profiles.find(x=>x.id===activeProfileId);if(!p)return;
   const i=profiles.indexOf(p);
   document.getElementById('chip-avatar').style.background=colorFor(i);
   document.getElementById('chip-avatar').textContent=initials(p.name);
   document.getElementById('chip-name').textContent=p.name.split(' ')[0];
 }
 
-// -- YEAR FILTER POPULATE ------------------------------------------
+// ============================================================
+// DATA LAYER
+// ============================================================
+async function loadProfile(){
+  if(!activeProfileId)return;
+  const [evR,syR]=await Promise.all([
+    db.from('ml_events').select('*').eq('profile_id',activeProfileId).order('date',{ascending:false}),
+    db.from('ml_symptoms').select('*').eq('profile_id',activeProfileId).order('date',{ascending:false}),
+  ]);
+  events=evR.data||[];
+  symptoms=syR.data||[];
+}
+
+// ============================================================
+// YEAR FILTER
+// ============================================================
 function populateYears(){
   const yrs=[...new Set([...events,...symptoms].map(r=>r.date?.split('-')[0]).filter(Boolean))].sort().reverse();
   ['hist-year','sym-year'].forEach(id=>{
     const s=document.getElementById(id);if(!s)return;
     const cur=s.value;
-    s.innerHTML='<option value="">All Years</option>'+yrs.map(y=>`<option value="${y}"${y===cur?' selected':''}>${y}</option>`).join('');
+    s.innerHTML='<option value="">All Years</option>'+yrs.map(y=>'<option value="'+y+'"'+(y===cur?' selected':'')+'>'+y+'</option>').join('');
   });
 }
 
-// -- NAV -----------------------------------------------------------
-let histChip='all',symFilter='all',currentSev=1;
-let dChart,mChart,pChart,sChart,sevChart;
-
+// ============================================================
+// NAV
+// ============================================================
 function showView(id){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('view-'+id).classList.add('active');
-  var nb=document.getElementById('nav-'+id);if(nb)nb.classList.add('active');
+  const nb=document.getElementById('nav-'+id);if(nb)nb.classList.add('active');
   populateYears();
   if(id==='dashboard')renderDash();
   if(id==='history')renderHistory();
@@ -795,215 +791,170 @@ function showView(id){
   if(id==='profiles')renderProfilesView();
 }
 
-// -- FORMS ---------------------------------------------------------
+// ============================================================
+// FORMS
+// ============================================================
 function initForms(){const t=new Date().toISOString().split('T')[0];document.getElementById('f-date').value=t;document.getElementById('s-date').value=t;}
 function onTypeChange(){const t=document.getElementById('f-type').value;document.getElementById('f-dosage-group').style.display=t==='medication'?'':'none';document.getElementById('f-doctor-group').style.display=t==='medication'?'none':'';}
-function saveEvent(){
-  const title=document.getElementById('f-title').value.trim();if(!title){toast('Please enter a title.');return;}
-  events.unshift({id:Date.now(),type:document.getElementById('f-type').value,date:document.getElementById('f-date').value,title,doctor:document.getElementById('f-doctor').value.trim(),dosage:document.getElementById('f-dosage').value.trim(),notes:document.getElementById('f-notes').value.trim()});
-  saveData();['f-title','f-doctor','f-dosage','f-notes'].forEach(id=>document.getElementById(id).value='');
-  toast('✅ Event saved!');showView('dashboard');
+function onContactInput(){}
+function onFamilyContactInput(){
+  const phone=(document.getElementById('new-profile-phone')||{value:''}).value.trim();
+  const tip=document.getElementById('family-phone-tip');if(tip)tip.style.display=phone.length>0?'block':'none';
+  const err=document.getElementById('family-add-error');if(err)err.textContent='';
 }
-function deleteEvent(id){if(!confirm('Delete?'))return;events=events.filter(e=>e.id!==id);saveData();renderHistory();renderDash();toast('🗑 Deleted.');}
+
+async function saveEvent(){
+  const title=document.getElementById('f-title').value.trim();
+  if(!title){toast('Please enter a title.');return;}
+  const row={
+    profile_id:activeProfileId,user_id:currentUser.id,
+    type:document.getElementById('f-type').value,
+    date:document.getElementById('f-date').value,
+    title,
+    doctor:document.getElementById('f-doctor').value.trim(),
+    dosage:document.getElementById('f-dosage').value.trim(),
+    notes:document.getElementById('f-notes').value.trim(),
+  };
+  const {data,error}=await db.from('ml_events').insert(row).select().single();
+  if(error){toast('Save failed: '+error.message);return;}
+  events.unshift(data);
+  ['f-title','f-doctor','f-dosage','f-notes'].forEach(id=>document.getElementById(id).value='');
+  toast('Event saved!');showView('dashboard');
+}
+
+async function deleteEvent(id){
+  if(!confirm('Delete?'))return;
+  await db.from('ml_events').delete().eq('id',id);
+  events=events.filter(e=>e.id!==id);
+  renderHistory();renderDash();toast('Deleted.');
+}
+
 function onSymptomChange(){document.getElementById('s-custom-group').style.display=document.getElementById('s-symptom').value==='Other'?'':'none';}
 function setSeverity(n){currentSev=n;[1,2,3].forEach(i=>document.getElementById('sev'+i).className='sev-btn'+(i===n?' active-'+n:''));}
-function saveSymptom(){
+
+async function saveSymptom(){
   let name=document.getElementById('s-symptom').value;
   if(name==='Other'){name=document.getElementById('s-custom').value.trim();if(!name){toast('Please describe the symptom.');return;}}
   const sl=['','Mild','Moderate','Severe'];
-  symptoms.unshift({id:Date.now(),name,date:document.getElementById('s-date').value,severity:sl[currentSev],duration:document.getElementById('s-duration').value,trigger:document.getElementById('s-trigger').value,notes:document.getElementById('s-notes').value.trim()});
-  saveData();document.getElementById('s-custom').value='';document.getElementById('s-notes').value='';
+  const row={
+    profile_id:activeProfileId,user_id:currentUser.id,name,
+    date:document.getElementById('s-date').value,
+    severity:sl[currentSev],
+    duration:document.getElementById('s-duration').value,
+    trigger:document.getElementById('s-trigger').value,
+    notes:document.getElementById('s-notes').value.trim(),
+  };
+  const {data,error}=await db.from('ml_symptoms').insert(row).select().single();
+  if(error){toast('Save failed: '+error.message);return;}
+  symptoms.unshift(data);
+  document.getElementById('s-custom').value='';document.getElementById('s-notes').value='';
   document.getElementById('s-symptom').selectedIndex=0;document.getElementById('s-trigger').selectedIndex=0;
-  setSeverity(1);onSymptomChange();toast('✅ Symptom logged!');renderSymList();renderSymFreq();
-}
-function deleteSymptom(id){if(!confirm('Delete?'))return;symptoms=symptoms.filter(s=>s.id!==id);saveData();renderSymList();renderSymFreq();toast('🗑 Deleted.');}
-
-// -- HTML BUILDERS -------------------------------------------------
-function eventHtml(ev,del=true){return `<div class="event-item"><div class="event-dot dot-${ev.type}"></div><div class="event-body"><div class="event-title">${ev.title}</div><div class="event-meta"><span class="badge badge-${ev.type}">${ev.type}</span>&nbsp;${fmtDate(ev.date)}${ev.doctor?' · '+ev.doctor:''}${ev.dosage?' · '+ev.dosage:''}</div>${ev.notes?`<div class="event-notes">${ev.notes}</div>`:''}</div>${del?`<div class="event-actions"><button class="btn-danger" onclick="deleteEvent(${ev.id})">✕</button></div>`:''}</div>`;}
-function symHtml(s,del=true){const n=s.severity==='Mild'?1:s.severity==='Moderate'?2:3;const ic=['','😌','😟','😰'][n];return `<div class="event-item"><div class="event-dot dot-symptom"></div><div class="event-body"><div class="event-title">${ic} ${s.name}</div><div class="event-meta"><span class="badge badge-symptom">${s.severity}</span>&nbsp;${fmtDate(s.date)}${s.duration?' · '+s.duration:''}${s.trigger?' · '+s.trigger:''}</div>${s.notes?`<div class="event-notes">${s.notes}</div>`:''}</div>${del?`<div class="event-actions"><button class="btn-danger" onclick="deleteSymptom(${s.id})">✕</button></div>`:''}</div>`;}
-function emptyHtml(m='No entries found.'){return `<div class="empty"><div class="empty-icon">🩺</div>${m}</div>`;}
-
-// -- DASHBOARD -----------------------------------------------------
-var dashFilter=null; // null=all, 'total','year','month','medication','symptom'
-
-function clearDashFilter(){
-  dashFilter=null;
-  var bar=document.getElementById('dash-filter-bar');
-  if(bar){bar.style.display='none';}
-  renderDash();
+  setSeverity(1);onSymptomChange();toast('Symptom logged!');renderSymList();renderSymFreq();
 }
 
-function setDashFilter(f){
-  dashFilter=dashFilter===f?null:f;
-  renderDash();
+async function deleteSymptom(id){
+  if(!confirm('Delete?'))return;
+  await db.from('ml_symptoms').delete().eq('id',id);
+  symptoms=symptoms.filter(s=>s.id!==id);
+  renderSymList();renderSymFreq();toast('Deleted.');
 }
 
+// ============================================================
+// HTML BUILDERS
+// ============================================================
+function eventHtml(ev,del=true){return '<div class="event-item"><div class="event-dot dot-'+ev.type+'"></div><div class="event-body"><div class="event-title">'+ev.title+'</div><div class="event-meta"><span class="badge badge-'+ev.type+'">'+ev.type+'</span>&nbsp;'+fmtDate(ev.date)+(ev.doctor?' \u00b7 '+ev.doctor:'')+(ev.dosage?' \u00b7 '+ev.dosage:'')+'</div>'+(ev.notes?'<div class="event-notes">'+ev.notes+'</div>':'')+'</div>'+(del?'<div class="event-actions"><button class="btn-danger" onclick="deleteEvent(\''+ev.id+'\')">&#x2715;</button></div>':'')+'</div>';}
+function symHtml(s,del=true){const n=s.severity==='Mild'?1:s.severity==='Moderate'?2:3;const ic=['','\ud83d\ude0c','\ud83d\ude1f','\ud83d\ude30'][n];return '<div class="event-item"><div class="event-dot dot-symptom"></div><div class="event-body"><div class="event-title">'+ic+' '+s.name+'</div><div class="event-meta"><span class="badge badge-symptom">'+s.severity+'</span>&nbsp;'+fmtDate(s.date)+(s.duration?' \u00b7 '+s.duration:'')+(s.trigger?' \u00b7 '+s.trigger:'')+'</div>'+(s.notes?'<div class="event-notes">'+s.notes+'</div>':'')+'</div>'+(del?'<div class="event-actions"><button class="btn-danger" onclick="deleteSymptom(\''+s.id+'\')">&#x2715;</button></div>':'')+'</div>';}
+function emptyHtml(m='No entries found.'){return '<div class="empty"><div class="empty-icon">\ud83e\udeba</div>'+m+'</div>';}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+var dashFilter=null;
+function clearDashFilter(){dashFilter=null;var bar=document.getElementById('dash-filter-bar');if(bar)bar.style.display='none';renderDash();}
+function setDashFilter(f){dashFilter=dashFilter===f?null:f;renderDash();}
 function renderDash(){
   var yr=new Date().getFullYear(),yrS=String(yr);
-  var evY=events.filter(function(e){return e.date&&e.date.startsWith(yrS);});
-  var syY=symptoms.filter(function(s){return s.date&&s.date.startsWith(yrS);});
+  var evY=events.filter(e=>e.date&&e.date.startsWith(yrS));
+  var syY=symptoms.filter(s=>s.date&&s.date.startsWith(yrS));
   var mo=new Date().getMonth();
-  var thisMo=[].concat(evY,syY).filter(function(r){return new Date((r.date||'')+'T00:00:00').getMonth()===mo;});
-  var p=getProfiles().find(function(x){return x.id===activeProfileId;});
-
-  // Stat cards -- active one gets a highlight ring
+  var thisMo=[...evY,...syY].filter(r=>new Date((r.date||'')+'T00:00:00').getMonth()===mo);
   var cards=[
-    {key:'total', label:'Total Records',  val:events.length+symptoms.length,          sub:(p&&p.name)||'',        color:''},
-    {key:'year',  label:'This Year',       val:evY.length+syY.length,                  sub:String(yr),             color:''},
-    {key:'month', label:'This Month',      val:thisMo.length,                           sub:'logged',               color:''},
-    {key:'medication',label:'Medications', val:events.filter(function(e){return e.type==='medication';}).length, sub:'tracked', color:''},
-    {key:'symptom',   label:'Symptoms',    val:symptoms.length,                         sub:'non-critical',         color:'color:var(--tag-symptom-t)'},
+    {key:'total',label:'Total Records',val:events.length+symptoms.length,sub:'',color:''},
+    {key:'year',label:'This Year',val:evY.length+syY.length,sub:String(yr),color:''},
+    {key:'month',label:'This Month',val:thisMo.length,sub:'logged',color:''},
+    {key:'medication',label:'Medications',val:events.filter(e=>e.type==='medication').length,sub:'tracked',color:''},
+    {key:'symptom',label:'Symptoms',val:symptoms.length,sub:'non-critical',color:'color:var(--tag-symptom-t)'},
   ];
-  document.getElementById('stats-row').innerHTML=cards.map(function(card){
+  document.getElementById('stats-row').innerHTML=cards.map(card=>{
     var active=dashFilter===card.key;
     var ring=active?'outline:2.5px solid var(--accent);outline-offset:2px;':'';
-    return '<div class="stat-card" data-key="'+card.key+'" style="cursor:pointer;'+ring+'" title="Click to filter">'
-      +'<div class="stat-label">'+card.label+'</div>'
-      +'<div class="stat-value" style="'+card.color+'">'+card.val+'</div>'
-      +'<div class="stat-sub">'+card.sub+'</div>'
-      +'</div>';
+    return '<div class="stat-card" data-key="'+card.key+'" style="cursor:pointer;'+ring+'" title="Click to filter"><div class="stat-label">'+card.label+'</div><div class="stat-value" style="'+card.color+'">'+card.val+'</div><div class="stat-sub">'+card.sub+'</div></div>';
   }).join('');
-  // Wire click via event delegation (avoids inline onclick quote issues)
   var sr=document.getElementById('stats-row');
-  if(sr&&!sr._wired){
-    sr._wired=true;
-    sr.addEventListener('click',function(e){
-      var card=e.target.closest('[data-key]');
-      if(card)setDashFilter(card.getAttribute('data-key'));
-    });
-  }
-
-  // Filter bar
+  if(sr&&!sr._wired){sr._wired=true;sr.addEventListener('click',e=>{var card=e.target.closest('[data-key]');if(card)setDashFilter(card.getAttribute('data-key'));});}
   var filterLabels={total:'All Records',year:'This Year ('+yr+')',month:'This Month',medication:'Medications',symptom:'Symptoms'};
-  var bar=document.getElementById('dash-filter-bar');
-  var lbl=document.getElementById('dash-filter-label');
-  if(bar){
-    if(dashFilter){
-      bar.style.cssText='display:flex;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.65rem 1.1rem;margin-bottom:1.2rem;align-items:center;gap:10px;box-shadow:var(--shadow);';
-      if(lbl)lbl.textContent='Showing: '+filterLabels[dashFilter];
-    } else {
-      bar.style.display='none';
-    }
-  }
-
-  // Build filtered record list
-  var allEv=events.map(function(e){return Object.assign({},e,{_k:'ev'});});
-  var allSy=symptoms.map(function(s){return Object.assign({},s,{_k:'sy'});});
-  var filteredEv=allEv, filteredSy=allSy;
-
-  if(dashFilter==='total'){/* show all */}
-  else if(dashFilter==='year'){
-    filteredEv=allEv.filter(function(e){return e.date&&e.date.startsWith(yrS);});
-    filteredSy=allSy.filter(function(s){return s.date&&s.date.startsWith(yrS);});
-  } else if(dashFilter==='month'){
-    filteredEv=allEv.filter(function(r){return new Date((r.date||'')+'T00:00:00').getFullYear()===yr&&new Date((r.date||'')+'T00:00:00').getMonth()===mo;});
-    filteredSy=allSy.filter(function(r){return new Date((r.date||'')+'T00:00:00').getFullYear()===yr&&new Date((r.date||'')+'T00:00:00').getMonth()===mo;});
-  } else if(dashFilter==='medication'){
-    filteredEv=allEv.filter(function(e){return e.type==='medication';});
-    filteredSy=[];
-  } else if(dashFilter==='symptom'){
-    filteredEv=[];
-    filteredSy=allSy;
-  }
-
-  var all=filteredEv.concat(filteredSy).sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
-
-  // Update list title
-  var listTitle=document.getElementById('dash-list-title');
-  if(listTitle)listTitle.textContent=dashFilter?('🔍 '+filterLabels[dashFilter]):'🕐 Recent Activity';
-
-  // Grouped timeline
-  var now=new Date();
-  var todayStr=now.toISOString().split('T')[0];
+  var bar=document.getElementById('dash-filter-bar'),lbl=document.getElementById('dash-filter-label');
+  if(bar){if(dashFilter){bar.style.cssText='display:flex;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.65rem 1.1rem;margin-bottom:1.2rem;align-items:center;gap:10px;box-shadow:var(--shadow);';if(lbl)lbl.textContent='Showing: '+filterLabels[dashFilter];}else{bar.style.display='none';}}
+  var allEv=events.map(e=>Object.assign({},e,{_k:'ev'}));
+  var allSy=symptoms.map(s=>Object.assign({},s,{_k:'sy'}));
+  var filteredEv=allEv,filteredSy=allSy;
+  if(dashFilter==='year'){filteredEv=allEv.filter(e=>e.date&&e.date.startsWith(yrS));filteredSy=allSy.filter(s=>s.date&&s.date.startsWith(yrS));}
+  else if(dashFilter==='month'){filteredEv=allEv.filter(r=>new Date((r.date||'')+'T00:00:00').getFullYear()===yr&&new Date((r.date||'')+'T00:00:00').getMonth()===mo);filteredSy=allSy.filter(r=>new Date((r.date||'')+'T00:00:00').getFullYear()===yr&&new Date((r.date||'')+'T00:00:00').getMonth()===mo);}
+  else if(dashFilter==='medication'){filteredEv=allEv.filter(e=>e.type==='medication');filteredSy=[];}
+  else if(dashFilter==='symptom'){filteredEv=[];filteredSy=allSy;}
+  var all=[...filteredEv,...filteredSy].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  var listTitle=document.getElementById('dash-list-title');if(listTitle)listTitle.textContent=dashFilter?('\ud83d\udd0d '+filterLabels[dashFilter]):'\ud83d\udd50 Recent Activity';
+  var now=new Date(),todayStr=now.toISOString().split('T')[0];
   var weekAgo=new Date(now);weekAgo.setDate(now.getDate()-7);
   var monthAgo=new Date(now);monthAgo.setDate(now.getDate()-30);
   var groups=[
-    {label:'Today',      items:all.filter(function(r){return r.date===todayStr;})},
-    {label:'This Week',  items:all.filter(function(r){return r.date<todayStr&&new Date(r.date+'T00:00:00')>=weekAgo;})},
-    {label:'This Month', items:all.filter(function(r){return new Date(r.date+'T00:00:00')<weekAgo&&new Date(r.date+'T00:00:00')>=monthAgo;})},
-    {label:'This Year',  items:all.filter(function(r){return r.date&&r.date.startsWith(yrS)&&new Date(r.date+'T00:00:00')<monthAgo;})},
-    {label:'Older',      items:all.filter(function(r){return r.date&&!r.date.startsWith(yrS);})},
+    {label:'Today',items:all.filter(r=>r.date===todayStr)},
+    {label:'This Week',items:all.filter(r=>r.date<todayStr&&new Date(r.date+'T00:00:00')>=weekAgo)},
+    {label:'This Month',items:all.filter(r=>new Date(r.date+'T00:00:00')<weekAgo&&new Date(r.date+'T00:00:00')>=monthAgo)},
+    {label:'This Year',items:all.filter(r=>r.date&&r.date.startsWith(yrS)&&new Date(r.date+'T00:00:00')<monthAgo)},
+    {label:'Older',items:all.filter(r=>r.date&&!r.date.startsWith(yrS))},
   ];
-  var html='';
-  groups.forEach(function(g){
-    if(!g.items.length)return;
-    html+='<div class="timeline-group-label">'+g.label+'</div>';
-    html+=g.items.map(function(r){return r._k==='ev'?eventHtml(r,false):symHtml(r,false);}).join('');
-  });
+  var html='';groups.forEach(g=>{if(!g.items.length)return;html+='<div class="timeline-group-label">'+g.label+'</div>';html+=g.items.map(r=>r._k==='ev'?eventHtml(r,false):symHtml(r,false)).join('');});
   document.getElementById('recent-list').innerHTML=html||emptyHtml('No entries yet.');
-
-  // Chart -- filter-aware
   var lb=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  var chartEv=dashFilter==='symptom'?[]:filteredEv;
-  var chartSy=dashFilter==='medication'?[]:filteredSy;
-  // For year/month/total filters, show all-year breakdown; for medication/symptom show all years
-  var chartEvSrc=(dashFilter&&dashFilter!=='total'&&dashFilter!=='year'&&dashFilter!=='month')?chartEv:evY;
-  var chartSySrc=(dashFilter&&dashFilter!=='total'&&dashFilter!=='year'&&dashFilter!=='month')?chartSy:syY;
-  if(dashFilter==='medication')  {chartEvSrc=filteredEv;chartSySrc=[];}
-  if(dashFilter==='symptom')     {chartEvSrc=[];chartSySrc=filteredSy;}
-
-  var evM=lb.map(function(_,i){return chartEvSrc.filter(function(e){return new Date((e.date||'')+'T00:00:00').getMonth()===i;}).length;});
-  var syM=lb.map(function(_,i){return chartSySrc.filter(function(s){return new Date((s.date||'')+'T00:00:00').getMonth()===i;}).length;});
-
-  var chartTitleEl=document.getElementById('dash-chart-title');
-  if(chartTitleEl)chartTitleEl.textContent=dashFilter?('📊 '+filterLabels[dashFilter]+' by Month'):'📊 This Year at a Glance';
-
+  var chartEvSrc=evY,chartSySrc=syY;
+  if(dashFilter==='medication'){chartEvSrc=filteredEv;chartSySrc=[];}
+  if(dashFilter==='symptom'){chartEvSrc=[];chartSySrc=filteredSy;}
+  var evM=lb.map((_,i)=>chartEvSrc.filter(e=>new Date((e.date||'')+'T00:00:00').getMonth()===i).length);
+  var syM=lb.map((_,i)=>chartSySrc.filter(s=>new Date((s.date||'')+'T00:00:00').getMonth()===i).length);
+  var chartTitleEl=document.getElementById('dash-chart-title');if(chartTitleEl)chartTitleEl.textContent=dashFilter?('\ud83d\udcca '+filterLabels[dashFilter]+' by Month'):'\ud83d\udcca This Year at a Glance';
   if(dChart)dChart.destroy();
   dChart=new Chart(document.getElementById('dashChart'),{type:'bar',data:{labels:lb,datasets:[{label:'Medical',data:evM,backgroundColor:'#95c9aa',borderRadius:4},{label:'Symptoms',data:syM,backgroundColor:'#e8aec4',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:12,font:{family:'DM Sans'}}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
 }
 
-
-// -- HISTORY (enhanced search) -------------------------------------
-function setHistChip(type,el){
-  histChip=type;
-  document.querySelectorAll('#hist-chip-row .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');
-  document.getElementById('hist-type').value=type==='all'?'':type;
-  renderHistory();
-}
-function syncHistType(){
-  const t=document.getElementById('hist-type').value;
-  histChip=t||'all';
-  document.querySelectorAll('#hist-chip-row .chip').forEach(c=>c.classList.remove('active'));
-  const chips=document.querySelectorAll('#hist-chip-row .chip');
-  const target=t?Array.from(chips).find(c=>c.textContent.toLowerCase().replace(/-/g,'').includes(t.replace(/-/g,''))):chips[0];
-  if(target)target.classList.add('active');
-  renderHistory();
-}
+// ============================================================
+// HISTORY
+// ============================================================
+function setHistChip(type,el){histChip=type;document.querySelectorAll('#hist-chip-row .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');document.getElementById('hist-type').value=type==='all'?'':type;renderHistory();}
+function syncHistType(){const t=document.getElementById('hist-type').value;histChip=t||'all';document.querySelectorAll('#hist-chip-row .chip').forEach(c=>c.classList.remove('active'));const chips=document.querySelectorAll('#hist-chip-row .chip');const target=t?Array.from(chips).find(c=>c.textContent.toLowerCase().replace(/-/g,'').includes(t.replace(/-/g,''))):chips[0];if(target)target.classList.add('active');renderHistory();}
 function renderHistory(){
-  var q=(document.getElementById("hist-search")||{value:""}).value.toLowerCase();
-  var yr=(document.getElementById("hist-year")||{value:""}).value;
-  var tp=histChip==="all"?"":histChip;
+  var q=(document.getElementById('hist-search')||{value:''}).value.toLowerCase();
+  var yr=(document.getElementById('hist-year')||{value:''}).value;
+  var tp=histChip==='all'?'':histChip;
   var f=events.slice();
-  if(tp)f=f.filter(function(e){return e.type===tp;});
-  if(yr)f=f.filter(function(e){return e.date&&e.date.startsWith(yr);});
-  if(q)f=f.filter(function(e){return (e.title+(e.notes||'')+(e.doctor||'')).toLowerCase().indexOf(q)>=0;});
-  f.sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
-  var c=document.getElementById("hist-count");
-  if(c)c.textContent=f.length?("Showing "+f.length+" result"+(f.length!==1?"s":"")):" ";
-  if(!f.length){document.getElementById("history-list").innerHTML=emptyHtml("No events match your search.");return;}
-  // Group into time buckets
-  var now=new Date();
-  var todayStr=now.toISOString().split("T")[0];
+  if(tp)f=f.filter(e=>e.type===tp);
+  if(yr)f=f.filter(e=>e.date&&e.date.startsWith(yr));
+  if(q)f=f.filter(e=>(e.title+(e.notes||'')+(e.doctor||'')).toLowerCase().indexOf(q)>=0);
+  f.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  var c=document.getElementById('hist-count');if(c)c.textContent=f.length?('Showing '+f.length+' result'+(f.length!==1?'s':'')):'';
+  if(!f.length){document.getElementById('history-list').innerHTML=emptyHtml('No events match your search.');return;}
+  var now=new Date(),todayStr=now.toISOString().split('T')[0];
   var weekAgo=new Date(now);weekAgo.setDate(now.getDate()-7);
   var monthAgo=new Date(now);monthAgo.setDate(now.getDate()-30);
   var yrS=String(now.getFullYear());
-  var groups=[
-    {label:"Today",       items:f.filter(function(r){return r.date===todayStr;})},
-    {label:"This Week",   items:f.filter(function(r){return r.date<todayStr&&new Date(r.date+"T00:00:00")>=weekAgo;})},
-    {label:"This Month",  items:f.filter(function(r){return new Date(r.date+"T00:00:00")<weekAgo&&new Date(r.date+"T00:00:00")>=monthAgo;})},
-    {label:"This Year",   items:f.filter(function(r){return r.date&&r.date.startsWith(yrS)&&new Date(r.date+"T00:00:00")<monthAgo;})},
-    {label:"Older",       items:f.filter(function(r){return r.date&&!r.date.startsWith(yrS);})},
-  ];
-  var html="";
-  groups.forEach(function(g){
-    if(!g.items.length)return;
-    html+='<div class="timeline-group-label">'+g.label+'</div>';
-    html+=g.items.map(function(e){return eventHtml(e,true);}).join("");
-  });
-  document.getElementById("history-list").innerHTML=html;
+  var groups=[{label:'Today',items:f.filter(r=>r.date===todayStr)},{label:'This Week',items:f.filter(r=>r.date<todayStr&&new Date(r.date+'T00:00:00')>=weekAgo)},{label:'This Month',items:f.filter(r=>new Date(r.date+'T00:00:00')<weekAgo&&new Date(r.date+'T00:00:00')>=monthAgo)},{label:'This Year',items:f.filter(r=>r.date&&r.date.startsWith(yrS)&&new Date(r.date+'T00:00:00')<monthAgo)},{label:'Older',items:f.filter(r=>r.date&&!r.date.startsWith(yrS))}];
+  var html='';groups.forEach(g=>{if(!g.items.length)return;html+='<div class="timeline-group-label">'+g.label+'</div>';html+=g.items.map(e=>eventHtml(e,true)).join('');});
+  document.getElementById('history-list').innerHTML=html;
 }
 
-// -- SYMPTOMS (enhanced search) ------------------------------------
+// ============================================================
+// SYMPTOMS
+// ============================================================
 function filterSym(f,el){symFilter=f;document.querySelectorAll('#view-symptoms .chip-row .chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderSymList();}
 function renderSymList(){
   const q=(document.getElementById('sym-search')?.value||'').toLowerCase();
@@ -1011,228 +962,267 @@ function renderSymList(){
   let f=symFilter==='all'?symptoms:symptoms.filter(s=>s.severity===symFilter);
   if(yr)f=f.filter(s=>s.date?.startsWith(yr));
   if(q)f=f.filter(s=>(s.name+(s.notes||'')+(s.trigger||'')).toLowerCase().includes(q));
-  const c=document.getElementById('sym-count');if(c)c.textContent=f.length?`Showing ${f.length} result${f.length!==1?'s':''}`:' ';
+  const c=document.getElementById('sym-count');if(c)c.textContent=f.length?('Showing '+f.length+' result'+(f.length!==1?'s':'')):'';
   document.getElementById('symptom-list').innerHTML=f.length?f.map(s=>symHtml(s)).join(''):emptyHtml('No symptoms match.');
 }
 function renderSymFreq(){
   const freq={};symptoms.forEach(s=>{freq[s.name]=(freq[s.name]||0)+1;});
   const s=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,12);
-  document.getElementById('symptom-freq-row').innerHTML=s.length?s.map(([n,c])=>`<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:.88rem;font-weight:600;">${n}<span class="freq-badge">${c}×</span></div>`).join(''):`<div style="color:var(--muted);">No symptoms logged yet.</div>`;
+  document.getElementById('symptom-freq-row').innerHTML=s.length?s.map(([n,c])=>'<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:.88rem;font-weight:600;">'+n+'<span class="freq-badge">'+c+'\u00d7</span></div>').join(''):'<div style="color:var(--muted);">No symptoms logged yet.</div>';
 }
 
-// -- ANALYSIS -----------------------------------------------------
+// ============================================================
+// ANALYSIS
+// ============================================================
 function renderAnalysis(){
   const allDates=[...events,...symptoms].map(r=>r.date?.split('-')[0]).filter(Boolean);
   const years=[...new Set(allDates)].sort().reverse();
   const cy=String(new Date().getFullYear());if(!years.includes(cy))years.unshift(cy);
   const sel=document.getElementById('year-select'),sel_v=sel.value||cy;
-  sel.innerHTML=years.map(y=>`<option value="${y}"${y===sel_v?' selected':''}>${y}</option>`).join('');
+  sel.innerHTML=years.map(y=>'<option value="'+y+'"'+(y===sel_v?' selected':'')+'>'+y+'</option>').join('');
   const yr=sel.value||cy;
   const yrev=events.filter(e=>e.date?.startsWith(yr)),yrsy=symptoms.filter(s=>s.date?.startsWith(yr));
   const cnt=t=>yrev.filter(e=>e.type===t).length;
-  document.getElementById('analysis-stats').innerHTML=`
-    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">${yrev.length+yrsy.length}</div><div class="stat-sub">in ${yr}</div></div>
-    <div class="stat-card"><div class="stat-label">Medical</div><div class="stat-value" style="color:var(--accent)">${yrev.length}</div><div class="stat-sub">events</div></div>
-    <div class="stat-card"><div class="stat-label">Symptoms</div><div class="stat-value" style="color:var(--tag-symptom-t)">${yrsy.length}</div><div class="stat-sub">logged</div></div>
-    <div class="stat-card"><div class="stat-label">Surgeries</div><div class="stat-value" style="color:var(--accent3)">${cnt('surgery')}</div><div class="stat-sub">procedures</div></div>
-    <div class="stat-card"><div class="stat-label">Medications</div><div class="stat-value" style="color:var(--accent2)">${cnt('medication')}</div><div class="stat-sub">tracked</div></div>`;
+  document.getElementById('analysis-stats').innerHTML='<div class="stat-card"><div class="stat-label">Total</div><div class="stat-value">'+(yrev.length+yrsy.length)+'</div><div class="stat-sub">in '+yr+'</div></div><div class="stat-card"><div class="stat-label">Medical</div><div class="stat-value" style="color:var(--accent)">'+yrev.length+'</div><div class="stat-sub">events</div></div><div class="stat-card"><div class="stat-label">Symptoms</div><div class="stat-value" style="color:var(--tag-symptom-t)">'+yrsy.length+'</div><div class="stat-sub">logged</div></div><div class="stat-card"><div class="stat-label">Surgeries</div><div class="stat-value" style="color:var(--accent3)">'+cnt('surgery')+'</div><div class="stat-sub">procedures</div></div><div class="stat-card"><div class="stat-label">Medications</div><div class="stat-value" style="color:var(--accent2)">'+cnt('medication')+'</div><div class="stat-sub">tracked</div></div>';
   const lb=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const evM=lb.map((_,i)=>yrev.filter(e=>new Date(e.date+'T00:00:00').getMonth()===i).length);
   const syM=lb.map((_,i)=>yrsy.filter(s=>new Date(s.date+'T00:00:00').getMonth()===i).length);
   if(mChart)mChart.destroy();
   mChart=new Chart(document.getElementById('monthChart'),{type:'bar',data:{labels:lb,datasets:[{label:'Medical Events',data:evM,backgroundColor:'#6b9e82',borderRadius:4},{label:'Symptoms',data:syM,backgroundColor:'#d49ab0',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:12}}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1}}}}});
   if(pChart)pChart.destroy();
-  pChart=new Chart(document.getElementById('pieChart'),{type:'doughnut',data:{labels:["Visit","Check-up","Surgery","Medication","Other","Symptom"],datasets:[{data:[cnt('visit'),cnt('checkup'),cnt('surgery'),cnt('medication'),cnt('other'),yrsy.length],backgroundColor:['#6b9e82','#5090a8','#b86868','#b8904a','#7d6aaa','#d49ab0'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:13,font:{family:'DM Sans'}}}}}});
+  pChart=new Chart(document.getElementById('pieChart'),{type:'doughnut',data:{labels:['Visit','Check-up','Surgery','Medication','Other','Symptom'],datasets:[{data:[cnt('visit'),cnt('checkup'),cnt('surgery'),cnt('medication'),cnt('other'),yrsy.length],backgroundColor:['#6b9e82','#5090a8','#b86868','#b8904a','#7d6aaa','#d49ab0'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:13,font:{family:'DM Sans'}}}}}});
   const freq={};yrsy.forEach(s=>{freq[s.name]=(freq[s.name]||0)+1;});
   const topS=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,8);
   if(sChart)sChart.destroy();
   sChart=new Chart(document.getElementById('symChart'),{type:'bar',data:{labels:topS.map(x=>x[0]),datasets:[{label:'Occurrences',data:topS.map(x=>x[1]),backgroundColor:'#e8aec4',borderRadius:5}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}});
   const sc={Mild:0,Moderate:0,Severe:0};yrsy.forEach(s=>{if(sc[s.severity]!==undefined)sc[s.severity]++;});
   if(sevChart)sevChart.destroy();
-  sevChart=new Chart(document.getElementById('sevChart'),{type:'doughnut',data:{labels:['😌 Mild','😟 Moderate','😰 Severe'],datasets:[{data:[sc.Mild,sc.Moderate,sc.Severe],backgroundColor:['#c8e6d4','#f0e6a0','#f0c8c8'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:13,font:{family:'DM Sans'}}}}}});
+  sevChart=new Chart(document.getElementById('sevChart'),{type:'doughnut',data:{labels:['\ud83d\ude0c Mild','\ud83d\ude1f Moderate','\ud83d\ude30 Severe'],datasets:[{data:[sc.Mild,sc.Moderate,sc.Severe],backgroundColor:['#c8e6d4','#f0e6a0','#f0c8c8'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:13,font:{family:'DM Sans'}}}}}});
   const allM=evM.map((v,i)=>v+syM[i]),bi=allM.indexOf(Math.max(...allM));
   const ins=[];
-  if(!yrev.length&&!yrsy.length)ins.push({i:'📭',t:`<strong>No data for ${yr}</strong> -- start logging to see insights.`});
+  if(!yrev.length&&!yrsy.length)ins.push({i:'\ud83d\udcad',t:'<strong>No data for '+yr+'</strong> \u2014 start logging to see insights.'});
   else{
-    if(Math.max(...allM)>0)ins.push({i:'📅',t:`<strong>Busiest Month:</strong> ${lb[bi]} (${allM[bi]} entries).`});
-    if(topS.length)ins.push({i:'🤒',t:`<strong>Top Symptom:</strong> ${topS[0][0]} -- ${topS[0][1]}× this year.`});
-    if(sc.Severe>0)ins.push({i:'⚠️',t:`<strong>Severe Symptoms:</strong> ${sc.Severe} episode(s) -- worth discussing with your doctor.`});
-    if(cnt('medication')>0)ins.push({i:'💊',t:`<strong>Medications:</strong> ${cnt('medication')} entries tracked.`});
-    if(cnt('surgery')>0)ins.push({i:'⚕️',t:`<strong>Procedures:</strong> ${cnt('surgery')} on record.`});
-    ins.push({i:'📝',t:`<strong>Summary:</strong> ${yrev.length} medical events + ${yrsy.length} symptoms in ${yr}.`});
+    if(Math.max(...allM)>0)ins.push({i:'\ud83d\udcc5',t:'<strong>Busiest Month:</strong> '+lb[bi]+' ('+allM[bi]+' entries).'});
+    if(topS.length)ins.push({i:'\ud83e\udd12',t:'<strong>Top Symptom:</strong> '+topS[0][0]+' \u2014 '+topS[0][1]+'\u00d7 this year.'});
+    if(sc.Severe>0)ins.push({i:'\u26a0\ufe0f',t:'<strong>Severe Symptoms:</strong> '+sc.Severe+' episode(s) \u2014 worth discussing with your doctor.'});
+    if(cnt('medication')>0)ins.push({i:'\ud83d\udc8a',t:'<strong>Medications:</strong> '+cnt('medication')+' entries tracked.'});
+    if(cnt('surgery')>0)ins.push({i:'\u2695\ufe0f',t:'<strong>Procedures:</strong> '+cnt('surgery')+' on record.'});
+    ins.push({i:'\ud83d\udcdd',t:'<strong>Summary:</strong> '+yrev.length+' medical events + '+yrsy.length+' symptoms in '+yr+'.'});
   }
-  document.getElementById('insights-list').innerHTML=ins.map(x=>`<div class="insight-item"><div class="insight-icon">${x.i}</div><div class="insight-text">${x.t}</div></div>`).join('');
+  document.getElementById('insights-list').innerHTML=ins.map(x=>'<div class="insight-item"><div class="insight-icon">'+x.i+'</div><div class="insight-text">'+x.t+'</div></div>').join('');
 }
 
-// -- PROFILES ------------------------------------------------------
-function renderProfilesView(){
-  var profiles=getProfiles(),c=document.getElementById('profiles-list');
-  if(!c)return;
+// ============================================================
+// PROFILES VIEW
+// ============================================================
+function calcAge(dob){if(!dob)return'';const d=new Date(dob),n=new Date();let a=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;return a<1?'<1':String(a);}
+
+async function renderProfilesView(){
+  const profiles=await getProfiles();
+  const c=document.getElementById('profiles-list');if(!c)return;
   if(!profiles.length){c.innerHTML=emptyHtml('No family members yet. Add one on the right.');return;}
-  var html='';
-  profiles.forEach(function(p,i){
-    var ev=getPD(p.id,'events').length,sy=getPD(p.id,'symptoms').length,isCur=p.id===activeProfileId;
-    var age=p.dob?calcAge(p.dob):'';
-    var ageStr=age?('&nbsp;&middot;&nbsp;'+age+' yrs'):'';
-    var badge=isCur?'<span style="font-size:.72rem;background:#e8f5ee;color:var(--accent);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">ACTIVE</span>':'';
-    var switchBtn=isCur?'<button class="btn-switch current">Active</button>':'<button class="btn-switch" data-switchid="'+p.id+'">Switch</button>';
-    html+='<div class="profile-row">';
-    html+='<div class="profile-row-avatar" style="background:'+colorFor(i)+'">'+initials(p.name)+'</div>';
-    html+='<div class="profile-row-info">';
-    html+='<div class="profile-row-name">'+p.name+badge+'</div>';
-    html+='<div class="profile-row-meta">'+(p.relationship||'Family member')+ageStr+'&nbsp;&middot;&nbsp;'+ev+' event'+(ev!==1?'s':'')+' &middot; '+sy+' symptom'+(sy!==1?'s':'')+'</div>';
-    if(p.email||p.phone){
-      html+='<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">';
-      if(p.email)html+='&#9993; '+p.email+(p.phone?'&nbsp;&nbsp;':'');
-      if(p.phone)html+='&#128222; '+p.phone;
-      html+='</div>';
-    }
-    if(p.notes)html+='<div class="profile-row-notes">'+p.notes+'</div>';
-    html+='</div>';
-    html+='<div class="profile-row-actions">'+switchBtn+'</div>';
-    html+='</div>';
+  const counts=await Promise.all(profiles.map(async p=>{
+    const [evR,syR]=await Promise.all([
+      db.from('ml_events').select('*',{count:'exact',head:true}).eq('profile_id',p.id),
+      db.from('ml_symptoms').select('*',{count:'exact',head:true}).eq('profile_id',p.id),
+    ]);
+    return{ev:evR.count||0,sy:syR.count||0};
+  }));
+  let html='';
+  profiles.forEach((p,i)=>{
+    const{ev,sy}=counts[i];
+    const isCur=p.id===activeProfileId;
+    const age=p.dob?calcAge(p.dob):'';
+    const ageStr=age?'&nbsp;&middot;&nbsp;'+age+' yrs':'';
+    const badge=isCur?'<span style="font-size:.72rem;background:#e8f5ee;color:var(--accent);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">ACTIVE</span>':'';
+    const switchBtn=isCur?'<button class="btn-switch current">Active</button>':'<button class="btn-switch" data-switchid="'+p.id+'">Switch</button>';
+    html+='<div class="profile-row"><div class="profile-row-avatar" style="background:'+colorFor(i)+'">'+initials(p.name)+'</div><div class="profile-row-info"><div class="profile-row-name">'+p.name+badge+'</div><div class="profile-row-meta">'+(p.relationship||'Family member')+ageStr+'&nbsp;&middot;&nbsp;'+ev+' event'+(ev!==1?'s':'')+' &middot; '+sy+' symptom'+(sy!==1?'s':'')+'</div>'+(p.email||p.phone?'<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">'+(p.email?'&#9993; '+p.email+(p.phone?'&nbsp;&nbsp;':''):'')+(p.phone?'&#128222; '+p.phone:'')+'</div>':'')+(p.notes?'<div class="profile-row-notes">'+p.notes+'</div>':'')+'</div><div class="profile-row-actions">'+switchBtn+'</div></div>';
   });
   c.innerHTML=html;
-  // Wire switch buttons via event delegation
-  c.addEventListener('click',function(e){
-    var btn=e.target.closest('[data-switchid]');
-    if(btn)switchTo(btn.getAttribute('data-switchid'));
+  c.addEventListener('click',async e=>{
+    const btn=e.target.closest('[data-switchid]');
+    if(btn){await selectProfile(btn.getAttribute('data-switchid'));toast('Switched profile');showView('dashboard');}
   },{once:true});
 }
-function calcAge(dob){
-  if(!dob)return'';
-  const d=new Date(dob),n=new Date();
-  let a=n.getFullYear()-d.getFullYear();
-  if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;
-  return a<1?'<1':String(a);
-}
-function switchTo(id){setActiveId(id);loadProfile();updateChip();populateYears();toast('Switched profile');showView('dashboard');}
-function addProfileFromManage(){
-  var name=document.getElementById('new-profile-name').value.trim();
-  var rel=document.getElementById('new-profile-rel').value;
-  var dob=document.getElementById('new-profile-dob')?document.getElementById('new-profile-dob').value:'';
-  var email=(document.getElementById('new-profile-email')||{value:''}).value.trim().toLowerCase();
-  var phone=(document.getElementById('new-profile-phone')||{value:''}).value.trim();
-  var notes=document.getElementById('new-profile-notes')?document.getElementById('new-profile-notes').value.trim():'';
-  var familyErr=document.getElementById('family-add-error');
+
+async function addProfileFromManage(){
+  const name=document.getElementById('new-profile-name').value.trim();
+  const rel=document.getElementById('new-profile-rel').value;
+  const dob=document.getElementById('new-profile-dob')?.value||'';
+  const email=(document.getElementById('new-profile-email')||{value:''}).value.trim().toLowerCase();
+  const phone=(document.getElementById('new-profile-phone')||{value:''}).value.trim();
+  const notes=document.getElementById('new-profile-notes')?.value.trim()||'';
+  const familyErr=document.getElementById('family-add-error');
   if(familyErr)familyErr.textContent='';
   if(!name){if(familyErr)familyErr.textContent='Please enter a name.';return;}
-  var hasEmail=email.length>0&&email.includes('@');
-  var hasPhone=phone.replace(/\D/g,'').length>=6;
-  if(!hasEmail&&!hasPhone){if(familyErr)familyErr.textContent='Please enter at least one: a valid email or phone number.';return;}
-  if(email.length>0&&!hasEmail){if(familyErr)familyErr.textContent='That email looks invalid — please check the format.';return;}
-  if(phone.length>0&&!hasPhone){if(familyErr)familyErr.textContent='That phone number looks too short — please check it.';return;}
-  var profiles=getProfiles();
-  if(profiles.find(function(p){return p.name.toLowerCase()===name.toLowerCase();})){if(familyErr)familyErr.textContent='A profile with that name already exists.';return;}
-  var np={id:'p_'+Date.now(),name:name,relationship:rel,dob:dob,email:email,phone:phone,notes:notes};
-  profiles.push(np);saveProfiles(profiles);
-  ['new-profile-name','new-profile-rel','new-profile-email','new-profile-phone','new-profile-notes'].forEach(function(id){
-    var el=document.getElementById(id);if(el)el.value='';
-  });
+  const{data,error}=await db.from('ml_profiles').insert({
+    user_id:currentUser.id,name,relationship:rel||null,
+    dob:dob||null,email:email||null,phone:phone||null,notes:notes||null,
+  }).select().single();
+  if(error){if(familyErr)familyErr.textContent='Could not add: '+error.message;return;}
+  ['new-profile-name','new-profile-rel','new-profile-email','new-profile-phone','new-profile-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   if(document.getElementById('new-profile-dob'))document.getElementById('new-profile-dob').value='';
-  toast('Added '+name+' to your family!');renderProfilesView();
-}
-function deleteCurrentProfile(){
-  const profiles=getProfiles();if(profiles.length<=1){toast('⚠️ Cannot delete the only profile.');return;}
-  const p=profiles.find(x=>x.id===activeProfileId);if(!confirm(`Delete "${p?.name}" and ALL data?`))return;
-  localStorage.removeItem(pKey(activeProfileId,'events'));localStorage.removeItem(pKey(activeProfileId,'symptoms'));
-  const upd=profiles.filter(x=>x.id!==activeProfileId);saveProfiles(upd);setActiveId(upd[0].id);loadProfile();
-  updateChip();toast('🗑 Deleted. Switched to '+upd[0].name);showView('dashboard');
+  toast('Added '+name+' to your family!');
+  await renderProfilesView();
 }
 
-// -- SHARE ---------------------------------------------------------
+async function deleteCurrentProfile(){
+  const profiles=await getProfiles();
+  if(profiles.length<=1){toast('Cannot delete the only profile.');return;}
+  const p=profiles.find(x=>x.id===activeProfileId);
+  if(!confirm('Delete "'+(p?.name||'')+'" and ALL data?'))return;
+  await db.from('ml_profiles').delete().eq('id',activeProfileId);
+  const upd=profiles.filter(x=>x.id!==activeProfileId);
+  await selectProfile(upd[0].id);
+  toast('Deleted. Switched to '+upd[0].name);
+}
+
+// ============================================================
+// SHARE
+// ============================================================
 let shareCtx='recent';
 const shareOpts={recent:'Recent Activity',history:'Medical History',symptoms:'Symptom Log',analysis:'Yearly Report'};
-
 function buildShareText(ctx){
-  const p=getProfiles().find(x=>x.id===activeProfileId);
   const yr=document.getElementById('year-select')?.value||String(new Date().getFullYear());
-  const lines=[`🏥 MedLog -- Health Summary for ${p?.name||'User'}`,`Date: ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}`,``];
-  if(ctx==='recent'||ctx==='history'){
-    const src=ctx==='recent'?[...events].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,10):events;
-    lines.push(`📋 MEDICAL EVENTS (${src.length})`,`${'-'.repeat(34)}`);
-    src.forEach(e=>lines.push(`• [${e.type.toUpperCase()}] ${fmtDate(e.date)} -- ${e.title}${e.doctor?' ('+e.doctor+')':''}${e.notes?' | '+e.notes:''}`));
-  }
-  if(ctx==='symptoms'){
-    lines.push(`🤒 SYMPTOMS (${symptoms.length})`,`${'-'.repeat(34)}`);
-    symptoms.slice(0,20).forEach(s=>lines.push(`• ${fmtDate(s.date)} -- ${s.name} [${s.severity}]${s.trigger?' | '+s.trigger:''}${s.notes?' | '+s.notes:''}`));
-  }
-  if(ctx==='analysis'){
-    const ye=events.filter(e=>e.date?.startsWith(yr)),ys=symptoms.filter(s=>s.date?.startsWith(yr));
-    const c=t=>ye.filter(e=>e.type===t).length;
-    const freq={};ys.forEach(s=>{freq[s.name]=(freq[s.name]||0)+1;});
-    const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,3);
-    lines.push(`📊 YEARLY REPORT -- ${yr}`,`${'-'.repeat(34)}`);
-    lines.push(`Total: ${ye.length+ys.length} records | Medical: ${ye.length} | Symptoms: ${ys.length}`);
-    lines.push(`Visits+Check-ups: ${c('visit')+c('checkup')} | Surgeries: ${c('surgery')} | Meds: ${c('medication')}`);
-    if(top.length)lines.push(`Top symptoms: ${top.map(([n,c])=>`${n} (${c}×)`).join(', ')}`);
-    lines.push(``,`-- Shared via MedLog`);
-  }
+  const lines=['MedLog -- Health Summary','Date: '+new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),''];
+  if(ctx==='recent'||ctx==='history'){const src=ctx==='recent'?[...events].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,10):events;lines.push('MEDICAL EVENTS ('+src.length+')','-'.repeat(34));src.forEach(e=>lines.push('- ['+e.type.toUpperCase()+'] '+fmtDate(e.date)+' -- '+e.title+(e.doctor?' ('+e.doctor+')'+'':'')+''+(e.notes?' | '+e.notes:'')));}
+  if(ctx==='symptoms'){lines.push('SYMPTOMS ('+symptoms.length+')','-'.repeat(34));symptoms.slice(0,20).forEach(s=>lines.push('- '+fmtDate(s.date)+' -- '+s.name+' ['+s.severity+']'+(s.trigger?' | '+s.trigger:'')+(s.notes?' | '+s.notes:'')));}
+  if(ctx==='analysis'){const ye=events.filter(e=>e.date?.startsWith(yr)),ys=symptoms.filter(s=>s.date?.startsWith(yr));const c=t=>ye.filter(e=>e.type===t).length;const freq={};ys.forEach(s=>{freq[s.name]=(freq[s.name]||0)+1;});const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,3);lines.push('YEARLY REPORT -- '+yr,'-'.repeat(34));lines.push('Total: '+(ye.length+ys.length)+' | Medical: '+ye.length+' | Symptoms: '+ys.length);lines.push('Visits+Check-ups: '+(c('visit')+c('checkup'))+' | Surgeries: '+c('surgery')+' | Meds: '+c('medication'));if(top.length)lines.push('Top symptoms: '+top.map(([n,c])=>n+' ('+c+'\u00d7)').join(', '));lines.push('','-- Shared via MedLog');}
   return lines.join('\n');
 }
-
-function openShare(ctx){
-  shareCtx=ctx;
-  const p=getProfiles().find(x=>x.id===activeProfileId);
-  document.getElementById('share-what-btns').innerHTML=Object.entries(shareOpts).map(([k,v])=>`<button class="${k===ctx?'active':''}" onclick="setShareCtx('${k}',this)">${v}</button>`).join('');
-  document.getElementById('share-scope').innerHTML=`Sharing <strong>${shareOpts[ctx]}</strong> for <strong>${p?.name||'current profile'}</strong>`;
-  document.getElementById('share-modal').classList.add('open');
-}
-function setShareCtx(ctx,el){shareCtx=ctx;document.querySelectorAll('.share-what button').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('share-scope').innerHTML=`Sharing <strong>${shareOpts[ctx]}</strong>`;}
+function openShare(ctx){shareCtx=ctx;document.getElementById('share-what-btns').innerHTML=Object.entries(shareOpts).map(([k,v])=>'<button class="'+(k===ctx?'active':'')+'" onclick="setShareCtx(\''+k+'\',this)">'+v+'</button>').join('');document.getElementById('share-scope').innerHTML='Sharing <strong>'+shareOpts[ctx]+'</strong>';document.getElementById('share-modal').classList.add('open');}
+function setShareCtx(ctx,el){shareCtx=ctx;document.querySelectorAll('.share-what button').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('share-scope').innerHTML='Sharing <strong>'+shareOpts[ctx]+'</strong>';}
 function closeShare(){document.getElementById('share-modal').classList.remove('open');}
 function closeShareOutside(e){if(e.target===document.getElementById('share-modal'))closeShare();}
-
 function doShare(method){
   const text=buildShareText(shareCtx);
-  const p=getProfiles().find(x=>x.id===activeProfileId);
-  const subj=encodeURIComponent(`MedLog Health Summary -- ${p?.name||'My Profile'}`);
+  const subj=encodeURIComponent('MedLog Health Summary');
   const body=encodeURIComponent(text);
-  if(method==='gmail')window.open(`https://mail.google.com/mail/?view=cm&fs=1&su=${subj}&body=${body}`,'_blank');
-  else if(method==='whatsapp')window.open(`https://wa.me/?text=${body}`,'_blank');
-  else if(method==='sms')window.open(`sms:?body=${body}`,'_blank');
+  if(method==='gmail')window.open('https://mail.google.com/mail/?view=cm&fs=1&su='+subj+'&body='+body,'_blank');
+  else if(method==='whatsapp')window.open('https://wa.me/?text='+body,'_blank');
+  else if(method==='sms')window.open('sms:?body='+body,'_blank');
   else if(method==='print'){closeShare();setTimeout(()=>window.print(),300);}
-  else if(method==='copy'){navigator.clipboard.writeText(text).then(()=>toast('📋 Copied!')).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Copied!');});}
+  else if(method==='copy'){navigator.clipboard.writeText(text).then(()=>toast('Copied!')).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied!');});}
   else if(method==='native'){if(navigator.share)navigator.share({title:'MedLog',text}).catch(()=>{});else toast('Use Copy or Gmail above.');}
 }
 
-// -- TOAST ---------------------------------------------------------
+// ============================================================
+// EMAIL REPORT
+// ============================================================
+let emailHtmlCache='';
+function buildEmailHtml(){
+  const yr=document.getElementById('year-select')?.value||String(new Date().getFullYear());
+  const ye=events.filter(e=>e.date?.startsWith(yr));
+  const ys=symptoms.filter(s=>s.date?.startsWith(yr));
+  const c=t=>ye.filter(e=>e.type===t).length;
+  const freq={};ys.forEach(s=>{freq[s.name]=(freq[s.name]||0)+1;});
+  const topS=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const lb=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const evM=lb.map((_,i)=>ye.filter(e=>new Date(e.date+'T00:00:00').getMonth()===i).length);
+  const syM=lb.map((_,i)=>ys.filter(s=>new Date(s.date+'T00:00:00').getMonth()===i).length);
+  const sc={Mild:0,Moderate:0,Severe:0};ys.forEach(s=>{if(sc[s.severity]!==undefined)sc[s.severity]++;});
+  const dateStr=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const allM=evM.map((v,i)=>v+syM[i]);
+  const bi=allM.indexOf(Math.max(...allM));
+  const monthRows=lb.map((m,i)=>{const tot=evM[i]+syM[i];if(!tot)return'';const barW=Math.round((tot/Math.max(...allM,1))*120);const detail=[evM[i]>0?evM[i]+' event'+(evM[i]>1?'s':''):'',syM[i]>0?syM[i]+' symptom'+(syM[i]>1?'s':''):''].filter(Boolean).join(' \u00b7 ');return '<tr><td style="padding:4px 12px 4px 0;font-size:12px;color:#374151;font-weight:600;white-space:nowrap;width:32px;">'+m+'</td><td style="padding:4px 8px 4px 0;"><div style="background:#2d6a4f;height:8px;width:'+barW+'px;border-radius:99px;min-width:4px;"></div></td><td style="padding:4px 0;font-size:11px;color:#6b7280;">'+detail+'</td></tr>';}).filter(Boolean).join('');
+  const insLines=[];
+  if(Math.max(...allM)>0)insLines.push('\ud83d\udcc5 <strong>Busiest Month:</strong> '+lb[bi]+' ('+allM[bi]+' entries)');
+  if(topS.length)insLines.push('\ud83e\udd12 <strong>Top Symptom:</strong> '+topS[0][0]+' \u2014 '+topS[0][1]+'\u00d7 this year');
+  if(sc.Severe>0)insLines.push('\u26a0\ufe0f <strong>Severe Symptoms:</strong> '+sc.Severe+' episode(s)');
+  if(c('medication')>0)insLines.push('\ud83d\udc8a <strong>Medications:</strong> '+c('medication')+' entries tracked');
+  if(c('surgery')>0)insLines.push('\u2695\ufe0f <strong>Procedures:</strong> '+c('surgery')+' on record');
+  insLines.push('\ud83d\udcdd <strong>Summary:</strong> '+ye.length+' medical events + '+ys.length+' symptoms in '+yr);
+  const statCells=[['Total Records',ye.length+ys.length,'#fff'],['Medical Events',ye.length,'#bbf7d0'],['Symptoms',ys.length,'#f9a8d4'],['Surgeries',c('surgery'),'#fca5a5'],['Medications',c('medication'),'#fde68a']].map(([label,val,col])=>'<td style="padding:16px 4px;text-align:center;border-right:1px solid rgba(255,255,255,.15);"><div style="font-size:20px;font-weight:700;color:'+col+';">'+val+'</div><div style="font-size:9px;color:rgba(255,255,255,.65);margin-top:3px;text-transform:uppercase;letter-spacing:.05em;">'+label+'</div></td>').join('');
+  const topSRows=topS.map(([name,count])=>{const pct=Math.round((count/Math.max(ys.length,1))*100);return '<tr><td style="padding:5px 0;font-size:13px;color:#374151;width:140px;">'+name+'</td><td style="padding:5px 8px 5px 0;"><div style="background:#e5e7eb;border-radius:99px;height:7px;overflow:hidden;"><div style="background:#2d6a4f;height:7px;width:'+pct+'%;border-radius:99px;"></div></div></td><td style="font-size:12px;color:#6b7280;white-space:nowrap;">'+count+'\u00d7</td></tr>';}).join('');
+  const sevBlock=sc.Mild+sc.Moderate+sc.Severe>0?[['Mild',sc.Mild,'#c8e6d4','#1e4d38'],['Moderate',sc.Moderate,'#fef3c7','#92400e'],['Severe',sc.Severe,'#fee2e2','#991b1b']].map(([label,val,bg,col])=>'<td style="padding:0 10px 0 0;"><div style="background:'+bg+';border-radius:10px;padding:10px 18px;text-align:center;"><div style="font-size:20px;font-weight:700;color:'+col+';">'+val+'</div><div style="font-size:10px;color:'+col+';margin-top:2px;">'+label+'</div></div></td>').join(''):'';
+  return '<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f7f4ef;font-family:Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f4ef;padding:20px 0;"><tr><td align="center"><table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.10);background:#fff;"><tr><td style="background:#1a1a2e;padding:24px 28px;" colspan="2"><table width="100%" cellpadding="0" cellspacing="0"><tr><td><div style="font-family:Georgia,serif;font-size:26px;color:#74c69d;font-weight:700;letter-spacing:-1px;">MedLog</div><div style="color:rgba(255,255,255,.5);font-size:12px;margin-top:2px;">Personal Health Journal</div></td><td style="text-align:right;vertical-align:middle;"><div style="color:#fff;font-size:15px;font-weight:600;">Yearly Report</div><div style="color:rgba(255,255,255,.45);font-size:11px;margin-top:3px;">'+yr+'</div><div style="color:rgba(255,255,255,.35);font-size:11px;margin-top:2px;">'+dateStr+'</div></td></tr></table></td></tr><tr><td colspan="2" style="background:#2d6a4f;padding:0;"><table width="100%" cellpadding="0" cellspacing="0"><tr>'+statCells+'</tr></table></td></tr><tr><td colspan="2" style="padding:24px 28px;">'+(topS.length?'<div style="margin-bottom:22px;"><div style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Top Symptoms This Year</div><table width="100%" cellpadding="0" cellspacing="0">'+topSRows+'</table></div>':'')+(sevBlock?'<div style="margin-bottom:22px;"><div style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Symptom Severity</div><table cellpadding="0" cellspacing="0"><tr>'+sevBlock+'</tr></table></div>':'')+(monthRows?'<div style="margin-bottom:22px;"><div style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Monthly Activity</div><table cellpadding="0" cellspacing="0">'+monthRows+'</table></div>':'')+'<div><div style="font-size:10px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Health Insights</div>'+insLines.map(line=>'<div style="margin-bottom:7px;padding:9px 12px;background:#f8fafc;border-left:3px solid #2d6a4f;border-radius:0 7px 7px 0;font-size:13px;color:#374151;line-height:1.55;">'+line+'</div>').join('')+'</div></td></tr><tr><td colspan="2" style="background:#f8fafc;border-top:1px solid #e5e7eb;padding:14px 28px;text-align:center;"><div style="font-size:11px;color:#9ca3af;line-height:1.6;">Generated by MedLog \u00b7 '+dateStr+'<br><em>For personal reference only. Not a medical document.</em></div></td></tr></table></td></tr></table></body></html>';
+}
+function openEmailReport(){
+  const yr=document.getElementById('year-select')?.value||String(new Date().getFullYear());
+  emailHtmlCache=buildEmailHtml();
+  document.getElementById('email-modal-sub').textContent=yr+' Yearly Report';
+  document.getElementById('email-preview-wrap').innerHTML=emailHtmlCache;
+  document.getElementById('email-copy-hint').style.display='none';
+  document.getElementById('email-modal').classList.add('open');
+}
+function closeEmailModal(){document.getElementById('email-modal').classList.remove('open');}
+function closeEmailModalOutside(e){if(e.target===document.getElementById('email-modal'))closeEmailModal();}
+async function copyEmailHtml(){
+  const hint=document.getElementById('email-copy-hint');
+  try{await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([emailHtmlCache],{type:'text/html'}),'text/plain':new Blob([buildShareText('analysis')],{type:'text/plain'})})]);hint.innerHTML='Formatted email copied! Open Gmail \u2192 paste (Ctrl+V) into compose body.';hint.style.display='block';toast('Copied!');}
+  catch{const text=buildShareText('analysis');try{await navigator.clipboard.writeText(text);}catch{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();}hint.innerHTML='Copied as plain text.';hint.style.display='block';toast('Copied!');}
+}
+async function copyAndOpenGmail(){
+  await copyEmailHtml();
+  const yr=document.getElementById('year-select')?.value||String(new Date().getFullYear());
+  const subj=encodeURIComponent('MedLog Health Report \u00b7 '+yr);
+  window.open('https://mail.google.com/mail/?view=cm&fs=1&su='+subj,'_blank');
+}
+
+// ============================================================
+// TOAST
+// ============================================================
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
-// -- SEED ----------------------------------------------------------
-function seedDemo(){
+// ============================================================
+// SEED DEMO
+// ============================================================
+async function seedDemo(){
+  if(!activeProfileId||!currentUser)return;
   const y=String(new Date().getFullYear());
-  events=[{id:1,type:'checkup',date:`${y}-01-15`,title:'Annual Physical Exam',doctor:'Dr. Chen / Family Health',dosage:'',notes:'All vitals normal. BP 120/80.'},{id:2,type:'medication',date:`${y}-02-03`,title:'Ibuprofen 200mg',doctor:'',dosage:'200mg as needed, max 3x daily',notes:'Lower back pain.'},{id:3,type:'visit',date:`${y}-03-20`,title:'Dermatology Consultation',doctor:'Dr. Patel / SkinCare',dosage:'',notes:'Mole check -- benign.'},{id:4,type:'medication',date:`${y}-04-10`,title:'Amoxicillin 500mg',doctor:'Dr. Chen',dosage:'500mg 3x daily for 7 days',notes:'Sinus infection.'},{id:5,type:'checkup',date:`${y}-06-01`,title:'Blood Panel & Cholesterol',doctor:'LabCorp',dosage:'',notes:'LDL slightly elevated.'},{id:6,type:'surgery',date:`${y}-07-14`,title:'Wisdom Tooth Extraction',doctor:'Dr. Adams / City Dental',dosage:'',notes:'Lower left removed.'},{id:7,type:'visit',date:`${y}-09-05`,title:'Knee Pain Follow-up',doctor:'Dr. Rivera / Ortho',dosage:'',notes:'MRI ordered. Mild tendinitis.'},{id:8,type:'other',date:`${y}-11-02`,title:'Nutritionist Supplement Review',doctor:'',dosage:'',notes:'Reviewed supplement stack.'}];
-  symptoms=[{id:101,name:'Headache',date:`${y}-01-20`,severity:'Mild',duration:'A few hours',trigger:'Screen time',notes:''},{id:102,name:'Back Pain',date:`${y}-02-06`,severity:'Moderate',duration:'Multiple days',trigger:'Physical activity',notes:'Gym related.'},{id:103,name:'Headache',date:`${y}-03-11`,severity:'Mild',duration:'Under 1 hour',trigger:'Stress',notes:''},{id:104,name:'Stomach Ache',date:`${y}-04-19`,severity:'Mild',duration:'A few hours',trigger:'Diet / Food',notes:'After lunch.'},{id:105,name:'Fatigue',date:`${y}-05-03`,severity:'Moderate',duration:'All day',trigger:'Lack of sleep',notes:''},{id:106,name:'Knee Pain',date:`${y}-06-22`,severity:'Moderate',duration:'Multiple days',trigger:'Physical activity',notes:'After long run.'},{id:107,name:'Headache',date:`${y}-07-08`,severity:'Severe',duration:'All day',trigger:'Stress',notes:'Work deadline.'},{id:108,name:'Sore Throat',date:`${y}-08-15`,severity:'Mild',duration:'Multiple days',trigger:'',notes:'Cold season.'},{id:109,name:'Back Pain',date:`${y}-09-30`,severity:'Mild',duration:'A few hours',trigger:'Physical activity',notes:''},{id:110,name:'Fatigue',date:`${y}-10-12`,severity:'Moderate',duration:'All day',trigger:'Lack of sleep',notes:''}];
+  const evRows=[
+    {profile_id:activeProfileId,user_id:currentUser.id,type:'checkup',date:y+'-01-15',title:'Annual Physical Exam',doctor:'Dr. Chen / Family Health',dosage:'',notes:'All vitals normal. BP 120/80.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,type:'medication',date:y+'-02-03',title:'Ibuprofen 200mg',doctor:'',dosage:'200mg as needed, max 3x daily',notes:'Lower back pain.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,type:'visit',date:y+'-03-20',title:'Dermatology Consultation',doctor:'Dr. Patel / SkinCare',dosage:'',notes:'Mole check.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,type:'medication',date:y+'-04-10',title:'Amoxicillin 500mg',doctor:'Dr. Chen',dosage:'500mg 3x daily for 7 days',notes:'Sinus infection.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,type:'checkup',date:y+'-06-01',title:'Blood Panel & Cholesterol',doctor:'LabCorp',dosage:'',notes:'LDL slightly elevated.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,type:'surgery',date:y+'-07-14',title:'Wisdom Tooth Extraction',doctor:'Dr. Adams / City Dental',dosage:'',notes:'Lower left removed.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,type:'visit',date:y+'-09-05',title:'Knee Pain Follow-up',doctor:'Dr. Rivera / Ortho',dosage:'',notes:'MRI ordered. Mild tendinitis.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,type:'other',date:y+'-11-02',title:'Nutritionist Supplement Review',doctor:'',dosage:'',notes:'Reviewed supplement stack.'},
+  ];
+  const syRows=[
+    {profile_id:activeProfileId,user_id:currentUser.id,name:'Headache',date:y+'-01-20',severity:'Mild',duration:'A few hours',trigger:'Screen time',notes:''},
+    {profile_id:activeProfileId,user_id:currentUser.id,name:'Back Pain',date:y+'-02-06',severity:'Moderate',duration:'Multiple days',trigger:'Physical activity',notes:'Gym related.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,name:'Headache',date:y+'-03-11',severity:'Mild',duration:'Under 1 hour',trigger:'Stress',notes:''},
+    {profile_id:activeProfileId,user_id:currentUser.id,name:'Stomach Ache',date:y+'-04-19',severity:'Mild',duration:'A few hours',trigger:'Diet / Food',notes:'After lunch.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,name:'Fatigue',date:y+'-05-03',severity:'Moderate',duration:'All day',trigger:'Lack of sleep',notes:''},
+    {profile_id:activeProfileId,user_id:currentUser.id,name:'Knee Pain',date:y+'-06-22',severity:'Moderate',duration:'Multiple days',trigger:'Physical activity',notes:'After long run.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,name:'Headache',date:y+'-07-08',severity:'Severe',duration:'All day',trigger:'Stress',notes:'Work deadline.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,name:'Sore Throat',date:y+'-08-15',severity:'Mild',duration:'Multiple days',trigger:'',notes:'Cold season.'},
+    {profile_id:activeProfileId,user_id:currentUser.id,name:'Back Pain',date:y+'-09-30',severity:'Mild',duration:'A few hours',trigger:'Physical activity',notes:''},
+    {profile_id:activeProfileId,user_id:currentUser.id,name:'Fatigue',date:y+'-10-12',severity:'Moderate',duration:'All day',trigger:'Lack of sleep',notes:''},
+  ];
+  const [evR,syR]=await Promise.all([
+    db.from('ml_events').insert(evRows).select(),
+    db.from('ml_symptoms').insert(syRows).select(),
+  ]);
+  events=(evR.data||[]).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  symptoms=(syR.data||[]).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
 }
 
-// -- BOOT ----------------------------------------------------------
-function boot(){
-  // Version guard - clear corrupted state from old versions
-  try {
-    var ver = localStorage.getItem('ml_version');
-    if(ver !== '1.5') {
-      // Preserve user accounts and profiles but reset session
-      localStorage.removeItem('ml_session');
-      localStorage.removeItem('ml_active_profile');
-      localStorage.setItem('ml_version','1.5');
-    }
-  } catch(e) {}
+// ============================================================
+// BOOT
+// ============================================================
+async function boot(){
   document.getElementById('app').style.display='none';
   document.getElementById('profile-screen').style.display='none';
-  ['screen-signup','screen-otp','screen-login','screen-quicklogin'].forEach(s=>{const el=document.getElementById(s);el.classList.remove('visible');el.style.display='none';});
-  const sess=getSession();
-  if(sess){
-    const users=getUsers(),idx=users.findIndex(u=>u.id===sess.id);
-    document.getElementById('ql-avatar').style.background=AV[Math.max(0,idx)%AV.length];
-    document.getElementById('ql-avatar').textContent=initials(sess.first+' '+sess.last);
-    document.getElementById('ql-name').textContent=sess.first+' '+sess.last;
-    document.getElementById('ql-email').textContent=sess.email;
-    document.getElementById('ql-fname').textContent=sess.first;
+  ['screen-signup','screen-login','screen-quicklogin'].forEach(s=>{
+    const el=document.getElementById(s);el.classList.remove('visible');el.style.display='none';
+  });
+  const {data:{session}}=await db.auth.getSession();
+  if(session){
+    currentUser=session.user;
+    const meta=session.user.user_metadata||{};
+    document.getElementById('ql-avatar').textContent=initials((meta.first_name||'')+' '+(meta.last_name||''));
+    document.getElementById('ql-name').textContent=(meta.first_name||'')+' '+(meta.last_name||'');
+    document.getElementById('ql-email').textContent=session.user.email;
+    document.getElementById('ql-fname').textContent=meta.first_name||'you';
     showScreen('screen-quicklogin');
-  } else {
-    showScreen(getUsers().length?'screen-login':'screen-signup');
+  }else{
+    showScreen('screen-login');
   }
 }
+
 boot();
 </script>
 <footer style="background:var(--ink);color:rgba(255,255,255,.28);text-align:center;padding:12px 1.5rem;font-size:.73rem;font-family:DM Sans,sans-serif;">&copy; 2026 MedLog &middot; All rights reserved &middot; Private &amp; Confidential &middot; Unauthorised reproduction prohibited</footer>
