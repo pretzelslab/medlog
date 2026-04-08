@@ -104,3 +104,40 @@ CREATE INDEX IF NOT EXISTS ml_profiles_user         ON ml_profiles(user_id);
 -- ============================================================
 -- NOTE: Create bucket manually in Supabase Dashboard > Storage > New bucket
 --       Name: medlog-attachments, Public: OFF
+
+
+-- ============================================================
+-- MIGRATION: Switch from Supabase Auth to PIN / invite-code auth
+-- Run date: 2026-04-08
+-- ============================================================
+
+-- 1. Access codes table (stores shareable invite codes)
+CREATE TABLE IF NOT EXISTS medlog_codes (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code       TEXT NOT NULL UNIQUE,
+  label      TEXT,                        -- who the code is for, e.g. "Mum", "Ravi"
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  is_active  BOOLEAN DEFAULT TRUE
+);
+
+-- 2. Allow anon key to read / create / update codes (no Supabase login needed)
+ALTER TABLE medlog_codes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "anon_read"   ON medlog_codes FOR SELECT USING (true);
+CREATE POLICY "anon_insert" ON medlog_codes FOR INSERT WITH CHECK (true);
+CREATE POLICY "anon_update" ON medlog_codes FOR UPDATE USING (true);
+
+-- 3. Make ml_profiles accessible without Supabase auth
+--    (access is now controlled by the invite code, not auth.uid())
+DROP POLICY IF EXISTS "ml_profiles_own" ON ml_profiles;
+CREATE POLICY "anon_all" ON ml_profiles FOR ALL USING (true) WITH CHECK (true);
+
+-- 4. Same for events and symptoms (cascades from profile access)
+DROP POLICY IF EXISTS "ml_events_own"   ON ml_events;
+DROP POLICY IF EXISTS "ml_symptoms_own" ON ml_symptoms;
+CREATE POLICY "anon_all" ON ml_events   FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "anon_all" ON ml_symptoms FOR ALL USING (true) WITH CHECK (true);
+
+-- NOTE: user_id columns in ml_events and ml_symptoms are no longer
+--       populated with auth.uid(). They are left empty (nullable) or
+--       set to a fixed constant by the app. No FK constraint is enforced
+--       once auth.users is no longer used.

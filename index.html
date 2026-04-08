@@ -222,56 +222,21 @@ textarea{resize:vertical;min-height:72px;}
 <body>
 
 <!-- SIGN UP -->
-<div class="auth-screen" id="screen-signup">
+<!-- ACCESS CODE -->
+<div class="auth-screen" id="screen-code">
   <div class="auth-logo">MedLog ✦</div>
   <div class="auth-sub">Your personal health journal</div>
   <div class="auth-card">
-    <h2>Create your account</h2>
-    <p>Your data is securely stored in the cloud — access from any device.</p>
-    <div class="auth-row">
-      <div class="auth-field"><label>First Name</label><input type="text" id="su-first" placeholder="Jane"></div>
-      <div class="auth-field"><label>Last Name</label><input type="text" id="su-last" placeholder="Smith"></div>
-    </div>
+    <h2>Enter your access code</h2>
+    <p>Your code keeps this journal private. You won't be asked again on this device.</p>
     <div class="auth-field">
-      <label>Email Address</label>
-      <input type="email" id="su-email" placeholder="jane@example.com">
+      <label>Access Code</label>
+      <input type="text" id="code-input" placeholder="e.g. PRL2026" autocomplete="off"
+             style="text-transform:uppercase;letter-spacing:.15em;font-size:1.1rem;font-weight:700;"
+             onkeydown="if(event.key==='Enter')submitCode()">
     </div>
-    <div class="auth-field">
-      <label>Password <span style="font-weight:400;color:var(--muted);font-size:.74rem;">(min 6 characters)</span></label>
-      <input type="password" id="su-password" placeholder="Choose a password" onkeydown="if(event.key==='Enter')submitSignup()">
-    </div>
-    <div class="auth-error" id="su-error"></div>
-    <button class="auth-btn" onclick="submitSignup()">Create Account</button>
-    <div class="auth-link">Already have an account? <a onclick="showScreen('screen-login')">Sign in</a></div>
-  </div>
-</div>
-
-<!-- LOGIN -->
-<div class="auth-screen" id="screen-login">
-  <div class="auth-logo">MedLog ✦</div>
-  <div class="auth-sub">Welcome back</div>
-  <div class="auth-card">
-    <h2>Sign in</h2>
-    <p>Enter your email and password to continue.</p>
-    <div class="auth-field"><label>Email</label><input type="email" id="li-email" placeholder="jane@example.com"></div>
-    <div class="auth-field"><label>Password</label><input type="password" id="li-password" placeholder="Your password" onkeydown="if(event.key==='Enter')submitLogin()"></div>
-    <div class="auth-error" id="li-error"></div>
-    <button class="auth-btn" onclick="submitLogin()">Sign In</button>
-    <div class="auth-link">New here? <a onclick="showScreen('screen-signup')">Create account</a></div>
-  </div>
-</div>
-
-<!-- QUICK LOGIN -->
-<div class="auth-screen" id="screen-quicklogin">
-  <div class="auth-logo">MedLog ✦</div>
-  <div class="auth-sub">Welcome back</div>
-  <div class="auth-card">
-    <div class="ql-avatar" id="ql-avatar"></div>
-    <div class="ql-name" id="ql-name"></div>
-    <div class="ql-email" id="ql-email"></div>
-    <button class="auth-btn" onclick="quickLogin()">Continue as <span id="ql-fname"></span></button>
-    <div class="ql-divider">not you?</div>
-    <button class="auth-btn secondary" onclick="showScreen('screen-login')">Sign in as someone else</button>
+    <div class="auth-error" id="code-error"></div>
+    <button class="auth-btn" onclick="submitCode()">Enter MedLog</button>
   </div>
 </div>
 
@@ -288,6 +253,33 @@ textarea{resize:vertical;min-height:72px;}
       <button onclick="createProfile()">+ Add</button>
     </div>
     <div class="ps-error" id="ps-error"></div>
+  </div>
+  <!-- Admin: generate shareable invite codes -->
+  <div id="admin-codegen" style="display:none;margin-top:1rem;background:#fff;border-radius:14px;padding:1.2rem 1.5rem;">
+    <p style="font-size:.78rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.7rem;">Generate Invite Code</p>
+    <div style="display:flex;gap:.6rem;margin-bottom:.6rem;">
+      <input type="text" id="code-label-input" placeholder="Who is it for? (e.g. Mum)"
+             style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:DM Sans,sans-serif;font-size:.88rem;outline:none;">
+      <button onclick="generateCode()"
+              style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:DM Sans,sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;white-space:nowrap;">
+        Generate
+      </button>
+    </div>
+    <div id="generated-code-box" style="display:none;background:#f0f9f4;border:1px solid #b7e4c7;border-radius:8px;padding:.8rem 1rem;">
+      <p style="font-size:.75rem;color:var(--muted);margin-bottom:.3rem;">Share this code:</p>
+      <p id="generated-code-value" style="font-size:1.4rem;font-weight:800;letter-spacing:.2em;color:var(--accent);font-family:DM Sans,sans-serif;"></p>
+      <div style="display:flex;gap:.5rem;margin-top:.6rem;flex-wrap:wrap;">
+        <button onclick="copyCode()" style="font-size:.78rem;padding:5px 10px;border:1px solid var(--accent);border-radius:6px;background:#fff;color:var(--accent);cursor:pointer;font-family:DM Sans,sans-serif;">Copy</button>
+        <a id="whatsapp-share" href="#" target="_blank"
+           style="font-size:.78rem;padding:5px 10px;border:1px solid #25d366;border-radius:6px;background:#fff;color:#25d366;cursor:pointer;text-decoration:none;font-family:DM Sans,sans-serif;">
+          WhatsApp
+        </a>
+        <a id="email-share" href="#" target="_blank"
+           style="font-size:.78rem;padding:5px 10px;border:1px solid var(--muted);border-radius:6px;background:#fff;color:var(--muted);cursor:pointer;text-decoration:none;font-family:DM Sans,sans-serif;">
+          Email
+        </a>
+      </div>
+    </div>
   </div>
   <div class="ps-signout"><a onclick="signOut()">Sign out</a></div>
 </div>
@@ -613,90 +605,88 @@ let histChip='all',symFilter='all',currentSev=1;
 let dChart,mChart,pChart,sChart,sevChart;
 
 // ============================================================
-// AUTH
+// AUTH — PIN / invite-code system (replaces Supabase email+password)
+// PRL2026 = admin (Preeti). All other valid codes = standard access.
+// Code is saved in localStorage — never prompted again on same device.
 // ============================================================
-function showScreen(id){
-  ['screen-signup','screen-login','screen-quicklogin'].forEach(s=>{
-    const el=document.getElementById(s);el.classList.remove('visible');el.style.display='none';
-  });
+const ADMIN_PIN    = 'PRL2026';
+const FIXED_UID    = 'MEDLOG_USER'; // shared user ID for all profile data
+
+function getStoredCode(){ return localStorage.getItem('ml_access_code'); }
+function storeCode(code,role){ localStorage.setItem('ml_access_code',code); localStorage.setItem('ml_access_role',role); }
+function clearAuth(){ localStorage.removeItem('ml_access_code'); localStorage.removeItem('ml_access_role'); }
+function isAdmin(){ return localStorage.getItem('ml_access_role')==='admin'; }
+
+function showCodeScreen(){
+  document.getElementById('app').style.display='none';
   document.getElementById('profile-screen').style.display='none';
-  const t=document.getElementById(id);t.classList.add('visible');t.style.display='flex';
+  const s=document.getElementById('screen-code');
+  s.classList.add('visible');s.style.display='flex';
+  setTimeout(()=>document.getElementById('code-input').focus(),100);
 }
 
-async function submitSignup(){
-  const first=document.getElementById('su-first').value.trim();
-  const last=document.getElementById('su-last').value.trim();
-  const email=document.getElementById('su-email').value.trim().toLowerCase();
-  const password=document.getElementById('su-password').value;
-  const err=document.getElementById('su-error');
-  if(!first||!last){err.textContent='Please enter your full name.';return;}
-  if(!email||!email.includes('@')){err.textContent='Please enter a valid email.';return;}
-  if(password.length<6){err.textContent='Password must be at least 6 characters.';return;}
-  err.textContent='Creating account...';
-  const {data,error}=await db.auth.signUp({email,password,options:{data:{first_name:first,last_name:last}}});
-  if(error){err.textContent=error.message;return;}
+async function submitCode(){
+  const raw=document.getElementById('code-input').value.trim();
+  const code=raw.toUpperCase();
+  const err=document.getElementById('code-error');
+  if(!code){err.textContent='Please enter your access code.';return;}
+  err.textContent='Checking…';
+
+  // Admin PIN — immediate access
+  if(code===ADMIN_PIN){
+    storeCode(code,'admin');
+    currentUser={id:FIXED_UID,role:'admin',user_metadata:{first_name:'Preeti'}};
+    err.textContent='';
+    await launchApp();
+    return;
+  }
+
+  // Check Supabase codes table for a valid invite code
+  const {data,error}=await db.from('medlog_codes').select('*').eq('code',code).eq('is_active',true).maybeSingle();
+  if(error||!data){err.textContent='Invalid or expired code. Please try again.';return;}
+  storeCode(code,'user');
+  currentUser={id:FIXED_UID,role:'user',user_metadata:{first_name:data.label||'Guest'}};
   err.textContent='';
-  currentUser=data.user;
-  toast('Welcome, '+first+'!');
-  await launchApp(data.user);
+  await launchApp();
 }
 
-async function submitLogin(){
-  const email=document.getElementById('li-email').value.trim().toLowerCase();
-  const password=document.getElementById('li-password').value;
-  const err=document.getElementById('li-error');
-  if(!email||!password){err.textContent='Please enter your email and password.';return;}
-  err.textContent='Signing in...';
-  const {data,error}=await db.auth.signInWithPassword({email,password});
-  if(error){err.textContent='Incorrect email or password.';return;}
-  err.textContent='';
-  currentUser=data.user;
-  const meta=data.user.user_metadata||{};
-  toast('Welcome back, '+(meta.first_name||'there')+'!');
-  await launchApp(data.user);
-}
-
-async function quickLogin(){
-  const {data}=await db.auth.getSession();
-  if(data.session){currentUser=data.session.user;await launchApp(currentUser);}
-  else showScreen('screen-login');
-}
-
-async function signOut(){
-  await db.auth.signOut();
+function signOut(){
+  clearAuth();
   currentUser=null;activeProfileId=null;events=[];symptoms=[];
   document.getElementById('app').style.display='none';
   document.getElementById('profile-screen').style.display='none';
-  showScreen('screen-login');
+  document.getElementById('code-input').value='';
+  showCodeScreen();
 }
 
 // ============================================================
 // PROFILES
 // ============================================================
 async function getProfiles(){
-  if(!currentUser)return[];
-  const {data}=await db.from('ml_profiles').select('*').eq('user_id',currentUser.id).order('created_at');
+  // No user_id filter — all profiles are shared across valid code holders
+  const {data}=await db.from('ml_profiles').select('*').order('created_at');
   return data||[];
 }
 
-async function launchApp(user){
-  currentUser=user;
-  ['screen-signup','screen-login','screen-quicklogin'].forEach(s=>{
-    const el=document.getElementById(s);el.classList.remove('visible');el.style.display='none';
-  });
+async function launchApp(){
+  // Hide auth screen
+  const sc=document.getElementById('screen-code');
+  sc.classList.remove('visible');sc.style.display='none';
   const profiles=await getProfiles();
-  if(!profiles.length){await showProfileScreen(user);return;}
-  const savedId=localStorage.getItem('ml_active_profile_'+user.id);
+  if(!profiles.length){await showProfileScreen();return;}
+  const savedId=localStorage.getItem('ml_active_profile_'+FIXED_UID);
   const found=profiles.find(p=>p.id===savedId);
   if(found)await selectProfile(found.id);
-  else await showProfileScreen(user);
+  else await showProfileScreen();
 }
 
-async function showProfileScreen(user){
+async function showProfileScreen(){
   document.getElementById('app').style.display='none';
   const ps=document.getElementById('profile-screen');ps.style.display='flex';
-  const meta=user.user_metadata||{};
-  document.getElementById('ps-greeting').textContent='Signed in as '+(meta.first_name||'')+' '+(meta.last_name||'')+' \u00b7 '+user.email;
+  const name=(currentUser&&currentUser.user_metadata&&currentUser.user_metadata.first_name)||'';
+  document.getElementById('ps-greeting').textContent='Welcome back'+(name?' \u00b7 '+name:'')+(isAdmin()?' \u00b7 Admin':'');
+  // Show code generator only for admin
+  document.getElementById('admin-codegen').style.display=isAdmin()?'block':'none';
   await renderPickerGrid();
 }
 
@@ -718,6 +708,34 @@ async function renderPickerGrid(){
   g.onclick=async e=>{const btn=e.target.closest('[data-profileid]');if(btn)await selectProfile(btn.getAttribute('data-profileid'));};
 }
 
+// ============================================================
+// ADMIN — invite code generation
+// ============================================================
+function randomCode(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no O/0/I/1 confusion
+  let c='';for(let i=0;i<8;i++)c+=chars[Math.floor(Math.random()*chars.length)];
+  return c.slice(0,4)+'-'+c.slice(4); // format: XXXX-XXXX
+}
+
+async function generateCode(){
+  const label=document.getElementById('code-label-input').value.trim()||'Guest';
+  const code=randomCode();
+  const {error}=await db.from('medlog_codes').insert({code,label,is_active:true});
+  if(error){toast('Could not save code. Try again.');return;}
+  const box=document.getElementById('generated-code-box');
+  document.getElementById('generated-code-value').textContent=code;
+  const msg=encodeURIComponent('Your MedLog access code: '+code+'\nGo to: https://pretzelslab.github.io/medlog');
+  document.getElementById('whatsapp-share').href='https://wa.me/?text='+msg;
+  document.getElementById('email-share').href='mailto:?subject=Your MedLog Access Code&body='+msg;
+  box.style.display='block';
+  document.getElementById('code-label-input').value='';
+}
+
+function copyCode(){
+  const code=document.getElementById('generated-code-value').textContent;
+  navigator.clipboard.writeText(code).then(()=>toast('Code copied!')).catch(()=>toast(code));
+}
+
 async function createProfile(){
   const inp=document.getElementById('ps-name-input');
   const name=inp.value.trim();
@@ -732,7 +750,7 @@ async function createProfile(){
 
 async function selectProfile(id){
   activeProfileId=id;
-  localStorage.setItem('ml_active_profile_'+currentUser.id,id);
+  localStorage.setItem('ml_active_profile_'+FIXED_UID,id);
   await loadProfile();
   if(!events.length&&!symptoms.length)await seedDemo();
   document.getElementById('profile-screen').style.display='none';
@@ -1206,20 +1224,24 @@ async function seedDemo(){
 async function boot(){
   document.getElementById('app').style.display='none';
   document.getElementById('profile-screen').style.display='none';
-  ['screen-signup','screen-login','screen-quicklogin'].forEach(s=>{
-    const el=document.getElementById(s);el.classList.remove('visible');el.style.display='none';
-  });
-  const {data:{session}}=await db.auth.getSession();
-  if(session){
-    currentUser=session.user;
-    const meta=session.user.user_metadata||{};
-    document.getElementById('ql-avatar').textContent=initials((meta.first_name||'')+' '+(meta.last_name||''));
-    document.getElementById('ql-name').textContent=(meta.first_name||'')+' '+(meta.last_name||'');
-    document.getElementById('ql-email').textContent=session.user.email;
-    document.getElementById('ql-fname').textContent=meta.first_name||'you';
-    showScreen('screen-quicklogin');
-  }else{
-    showScreen('screen-login');
+  document.getElementById('screen-code').style.display='none';
+
+  const savedCode=getStoredCode();
+  if(!savedCode){ showCodeScreen(); return; }
+
+  // Validate saved code — in case it was deactivated since last visit
+  if(savedCode===ADMIN_PIN){
+    currentUser={id:FIXED_UID,role:'admin',user_metadata:{first_name:'Preeti'}};
+    await launchApp();
+  } else {
+    const {data}=await db.from('medlog_codes').select('*').eq('code',savedCode).eq('is_active',true).maybeSingle();
+    if(data){
+      currentUser={id:FIXED_UID,role:'user',user_metadata:{first_name:data.label||'Guest'}};
+      await launchApp();
+    } else {
+      clearAuth(); // code was deactivated — ask again
+      showCodeScreen();
+    }
   }
 }
 
