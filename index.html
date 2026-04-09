@@ -1053,14 +1053,11 @@ async function renderProfilesView(){
     const age=p.dob?calcAge(p.dob):'';
     const ageStr=age?'&nbsp;&middot;&nbsp;'+age+' yrs':'';
     const badge=isCur?'<span style="font-size:.72rem;background:#e8f5ee;color:var(--accent);padding:2px 8px;border-radius:10px;font-weight:700;margin-left:6px;">ACTIVE</span>':'';
-    const switchBtn=isCur?'<button class="btn-switch current">Active</button>':'<button class="btn-switch" data-switchid="'+p.id+'">Switch</button>';
+    const switchBtn=isCur?'<button class="btn-switch current">Active</button>':'<button class="btn-switch" onclick="selectProfile(\''+p.id+'\').then(()=>{toast(\'Switched profile\');showView(\'dashboard\');})">Switch</button>';
     html+='<div class="profile-row"><div class="profile-row-avatar" style="background:'+colorFor(i)+'">'+initials(p.name)+'</div><div class="profile-row-info"><div class="profile-row-name">'+p.name+badge+'</div><div class="profile-row-meta">'+(p.relationship||'Family member')+ageStr+'&nbsp;&middot;&nbsp;'+ev+' event'+(ev!==1?'s':'')+' &middot; '+sy+' symptom'+(sy!==1?'s':'')+'</div>'+(p.email||p.phone?'<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">'+(p.email?'&#9993; '+p.email+(p.phone?'&nbsp;&nbsp;':''):'')+(p.phone?'&#128222; '+p.phone:'')+'</div>':'')+(p.notes?'<div class="profile-row-notes">'+p.notes+'</div>':'')+'</div><div class="profile-row-actions">'+switchBtn+'</div></div>';
   });
   c.innerHTML=html;
-  c.addEventListener('click',async e=>{
-    const btn=e.target.closest('[data-switchid]');
-    if(btn){await selectProfile(btn.getAttribute('data-switchid'));toast('Switched profile');showView('dashboard');}
-  },{once:true});
+  // switch handled via inline onclick on each button
 }
 
 async function addProfileFromManage(){
