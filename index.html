@@ -531,6 +531,18 @@ textarea{resize:vertical;min-height:72px;}
         <p style="font-size:.83rem;color:var(--muted);margin-bottom:.7rem;">Sign out and return to login screen.</p>
         <button class="btn-ghost" onclick="signOut()">Sign Out</button>
       </div>
+      <!-- Admin: generate invite codes (only visible to admin) -->
+      <div id="admin-section-inapp" style="display:none;margin-top:1.2rem;padding-top:1.2rem;border-top:1px solid var(--border);">
+        <p style="font-size:.83rem;font-weight:700;color:var(--muted);margin-bottom:.7rem;">&#128273; Generate Invite Code</p>
+        <p style="font-size:.78rem;color:var(--muted);margin-bottom:.7rem;line-height:1.5;">Create a one-time code to share with a family member. They use it to access MedLog.</p>
+        <div style="display:flex;gap:.6rem;margin-bottom:.6rem;">
+          <input type="text" id="inapp-code-label" placeholder="Who is it for? e.g. Ravi"
+                 style="flex:1;border:1.5px solid var(--border);border-radius:8px;padding:8px 11px;font-family:DM Sans,sans-serif;font-size:.85rem;outline:none;background:var(--bg);">
+          <button onclick="generateCodeInApp()"
+                  style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:DM Sans,sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;white-space:nowrap;">Generate</button>
+        </div>
+        <div id="inapp-code-result" style="display:none;background:#f0f9f4;border:1px solid #b7e4c7;border-radius:8px;padding:.8rem 1rem;font-size:.83rem;color:#1a6335;line-height:1.8;"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -734,6 +746,23 @@ async function generateCode(){
 function copyCode(){
   const code=document.getElementById('generated-code-value').textContent;
   navigator.clipboard.writeText(code).then(()=>toast('Code copied!')).catch(()=>toast(code));
+}
+
+async function generateCodeInApp(){
+  const label=document.getElementById('inapp-code-label').value.trim()||'Guest';
+  const code=randomCode();
+  const {error}=await db.from('medlog_codes').insert({code,label,is_active:true});
+  if(error){toast('Could not save code. Try again.');return;}
+  const msg=encodeURIComponent('Your MedLog access code: '+code+'\nGo to: https://pretzelslab.github.io/medlog');
+  const result=document.getElementById('inapp-code-result');
+  result.style.display='block';
+  result.innerHTML='For: <strong>'+label+'</strong><br>Code: <strong style="font-size:1.1rem;letter-spacing:.12em;">'+code+'</strong>'
+    +'<div style="display:flex;gap:.5rem;margin-top:.6rem;">'
+    +'<button onclick="navigator.clipboard.writeText(\''+code+'\').then(()=>toast(\'Copied!\'))" style="font-size:.78rem;padding:4px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:DM Sans,sans-serif;">Copy</button>'
+    +'<a href="https://wa.me/?text='+msg+'" target="_blank" style="font-size:.78rem;padding:4px 10px;background:#25d366;color:#fff;border-radius:6px;text-decoration:none;">WhatsApp</a>'
+    +'<a href="mailto:?subject=Your MedLog Access Code&body='+msg+'" style="font-size:.78rem;padding:4px 10px;background:#6366f1;color:#fff;border-radius:6px;text-decoration:none;">Email</a>'
+    +'</div>';
+  document.getElementById('inapp-code-label').value='';
 }
 
 async function createProfile(){
@@ -1058,6 +1087,7 @@ async function renderProfilesView(){
   });
   c.innerHTML=html;
   // switch handled via inline onclick on each button
+  document.getElementById('admin-section-inapp').style.display=isAdmin()?'block':'none';
 }
 
 async function addProfileFromManage(){
