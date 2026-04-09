@@ -610,7 +610,7 @@ let dChart,mChart,pChart,sChart,sevChart;
 // Code is saved in localStorage — never prompted again on same device.
 // ============================================================
 const ADMIN_PIN    = 'PRL2026';
-const FIXED_UID    = 'MEDLOG_USER'; // shared user ID for all profile data
+const FIXED_UID    = '00000000-0000-0000-0000-000000000001'; // shared fixed UUID for all profile data
 
 function getStoredCode(){ return localStorage.getItem('ml_access_code'); }
 function storeCode(code,role){ localStorage.setItem('ml_access_code',code); localStorage.setItem('ml_access_role',role); }
