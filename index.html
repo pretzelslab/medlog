@@ -354,7 +354,7 @@ textarea{resize:vertical;min-height:72px;}
         <div class="form-group"><label>Symptom</label>
           <select id="s-symptom" onchange="onSymptomChange()">
             <optgroup label="Head &amp; Neurological"><option>Headache</option><option>Migraine</option><option>Dizziness</option><option>Brain Fog</option></optgroup>
-            <optgroup label="Digestive"><option>Stomach Ache</option><option>Nausea</option><option>Bloating</option><option>Heartburn</option><option>Diarrhea</option><option>Constipation</option></optgroup>
+            <optgroup label="Digestive"><option>Abdominal Pain</option><option>Stomach Ache</option><option>Nausea</option><option>Bloating</option><option>Heartburn</option><option>Diarrhea</option><option>Constipation</option></optgroup>
             <optgroup label="Musculoskeletal"><option>Back Pain</option><option>Chest Pain</option><option>Knee Pain</option><option>Neck Pain</option><option>Shoulder Pain</option><option>Joint Pain</option><option>Muscle Cramp</option></optgroup>
             <optgroup label="Respiratory"><option>Cough</option><option>Sore Throat</option><option>Runny Nose</option><option>Shortness of Breath</option><option>Sneezing</option></optgroup>
             <optgroup label="Skin"><option>Rash</option><option>Itching</option><option>Dry Skin</option></optgroup>
@@ -547,7 +547,7 @@ textarea{resize:vertical;min-height:72px;}
   </div>
 </div>
 
-<div class="view" id="view-about"><div class="card" style="max-width:720px;margin:0 auto;"><div class="card-title">About MedLog</div><div style="font-size:.93rem;line-height:1.7;"><div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1rem;"><div style="font-family:Playfair Display,serif;font-size:1.3rem;font-weight:700;">MedLog &mdash; Personal Health Journal</div><div style="color:var(--muted);font-size:.83rem;">Version 1.5 &middot; Built 2026 &middot; Browser App</div></div><p style="margin-bottom:1rem;">MedLog is a private, browser-based health journal for individuals and families. All data stays on your device.</p><p style="margin-bottom:1rem;"><b>Key Features:</b> Multi-member family tracking, medical events, symptom logging, yearly analysis, timeline grouping, enhanced search, share via Gmail/WhatsApp/SMS/PDF, backup and restore.</p><p style="margin-bottom:1rem;"><b>Technology:</b> Single HTML file, no installation. Built with vanilla JS and Chart.js. Designed with Claude by Anthropic.</p><p style="margin-bottom:1rem;font-size:.85rem;color:var(--muted);"><b>Disclaimer:</b> Not a medical device. Always consult a healthcare provider for medical decisions.</p><div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:1rem;font-size:.82rem;color:#0369a1;text-align:center;">&copy; 2026 MedLog. All rights reserved. Unauthorised copying or reproduction strictly prohibited.</div></div></div></div>
+<div class="view" id="view-about"><div class="card" style="max-width:720px;margin:0 auto;"><div class="card-title">About MedLog</div><div style="font-size:.93rem;line-height:1.7;"><div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1rem;"><div style="font-family:Playfair Display,serif;font-size:1.3rem;font-weight:700;">MedLog &mdash; Personal Health Journal</div><div style="color:var(--muted);font-size:.83rem;">Version 1.7 &middot; Built 2026 &middot; Browser App</div></div><p style="margin-bottom:1rem;">MedLog is a private, browser-based health journal for individuals and families. All data stays on your device.</p><p style="margin-bottom:1rem;"><b>Key Features:</b> Multi-member family tracking, medical events, symptom logging, yearly analysis, timeline grouping, enhanced search, share via Gmail/WhatsApp/SMS/PDF, backup and restore.</p><p style="margin-bottom:1rem;"><b>Technology:</b> Single HTML file, no installation. Built with vanilla JS and Chart.js. Designed with Claude by Anthropic.</p><p style="margin-bottom:1rem;font-size:.85rem;color:var(--muted);"><b>Disclaimer:</b> Not a medical device. Always consult a healthcare provider for medical decisions.</p><div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:1rem;font-size:.82rem;color:#0369a1;text-align:center;">&copy; 2026 MedLog. All rights reserved. Unauthorised copying or reproduction strictly prohibited.</div></div></div></div>
 </main>
 </div>
 
@@ -781,7 +781,6 @@ async function selectProfile(id){
   activeProfileId=id;
   localStorage.setItem('ml_active_profile_'+FIXED_UID,id);
   await loadProfile();
-  if(!events.length&&!symptoms.length)await seedDemo();
   document.getElementById('profile-screen').style.display='none';
   document.getElementById('app').style.display='block';
   await updateChip();
@@ -903,7 +902,7 @@ async function deleteSymptom(id){
   if(!confirm('Delete?'))return;
   await db.from('ml_symptoms').delete().eq('id',id);
   symptoms=symptoms.filter(s=>s.id!==id);
-  renderSymList();renderSymFreq();toast('Deleted.');
+  renderSymList();renderSymFreq();renderDash();toast('Deleted.');
 }
 
 // ============================================================
@@ -1210,40 +1209,6 @@ async function copyAndOpenGmail(){
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
 // ============================================================
-// SEED DEMO
-// ============================================================
-async function seedDemo(){
-  if(!activeProfileId||!currentUser)return;
-  const y=String(new Date().getFullYear());
-  const evRows=[
-    {profile_id:activeProfileId,user_id:currentUser.id,type:'checkup',date:y+'-01-15',title:'Annual Physical Exam',doctor:'Dr. Chen / Family Health',dosage:'',notes:'All vitals normal. BP 120/80.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,type:'medication',date:y+'-02-03',title:'Ibuprofen 200mg',doctor:'',dosage:'200mg as needed, max 3x daily',notes:'Lower back pain.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,type:'visit',date:y+'-03-20',title:'Dermatology Consultation',doctor:'Dr. Patel / SkinCare',dosage:'',notes:'Mole check.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,type:'medication',date:y+'-04-10',title:'Amoxicillin 500mg',doctor:'Dr. Chen',dosage:'500mg 3x daily for 7 days',notes:'Sinus infection.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,type:'checkup',date:y+'-06-01',title:'Blood Panel & Cholesterol',doctor:'LabCorp',dosage:'',notes:'LDL slightly elevated.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,type:'surgery',date:y+'-07-14',title:'Wisdom Tooth Extraction',doctor:'Dr. Adams / City Dental',dosage:'',notes:'Lower left removed.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,type:'visit',date:y+'-09-05',title:'Knee Pain Follow-up',doctor:'Dr. Rivera / Ortho',dosage:'',notes:'MRI ordered. Mild tendinitis.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,type:'other',date:y+'-11-02',title:'Nutritionist Supplement Review',doctor:'',dosage:'',notes:'Reviewed supplement stack.'},
-  ];
-  const syRows=[
-    {profile_id:activeProfileId,user_id:currentUser.id,name:'Headache',date:y+'-01-20',severity:'Mild',duration:'A few hours',trigger:'Screen time',notes:''},
-    {profile_id:activeProfileId,user_id:currentUser.id,name:'Back Pain',date:y+'-02-06',severity:'Moderate',duration:'Multiple days',trigger:'Physical activity',notes:'Gym related.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,name:'Headache',date:y+'-03-11',severity:'Mild',duration:'Under 1 hour',trigger:'Stress',notes:''},
-    {profile_id:activeProfileId,user_id:currentUser.id,name:'Stomach Ache',date:y+'-04-19',severity:'Mild',duration:'A few hours',trigger:'Diet / Food',notes:'After lunch.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,name:'Fatigue',date:y+'-05-03',severity:'Moderate',duration:'All day',trigger:'Lack of sleep',notes:''},
-    {profile_id:activeProfileId,user_id:currentUser.id,name:'Knee Pain',date:y+'-06-22',severity:'Moderate',duration:'Multiple days',trigger:'Physical activity',notes:'After long run.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,name:'Headache',date:y+'-07-08',severity:'Severe',duration:'All day',trigger:'Stress',notes:'Work deadline.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,name:'Sore Throat',date:y+'-08-15',severity:'Mild',duration:'Multiple days',trigger:'',notes:'Cold season.'},
-    {profile_id:activeProfileId,user_id:currentUser.id,name:'Back Pain',date:y+'-09-30',severity:'Mild',duration:'A few hours',trigger:'Physical activity',notes:''},
-    {profile_id:activeProfileId,user_id:currentUser.id,name:'Fatigue',date:y+'-10-12',severity:'Moderate',duration:'All day',trigger:'Lack of sleep',notes:''},
-  ];
-  const [evR,syR]=await Promise.all([
-    db.from('ml_events').insert(evRows).select(),
-    db.from('ml_symptoms').insert(syRows).select(),
-  ]);
-  events=(evR.data||[]).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  symptoms=(syR.data||[]).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-}
 
 // ============================================================
 // BOOT
