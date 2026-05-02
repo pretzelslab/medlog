@@ -217,6 +217,17 @@ textarea{resize:vertical;min-height:72px;}
   .search-row{flex-direction:column;}
   .search-main,.s-select{width:100%;}
 }
+.ms-card{margin-bottom:0;}
+.ms-stats-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1rem;}
+.ms-chip{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:.82rem;color:var(--muted);}
+.ms-chip strong{color:var(--ink);}
+.ms-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem;flex-wrap:wrap;}
+.ms-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);min-width:68px;}
+.ms-pills{display:flex;gap:.4rem;flex-wrap:wrap;}
+.ms-pill{font-size:.78rem;font-weight:600;padding:4px 10px;border-radius:20px;}
+.ms-insight{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);}
+.ms-insight-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:.4rem;}
+.ms-insight-text{font-size:.9rem;color:var(--ink);line-height:1.65;}
 </style>
 </head>
 <body>
@@ -313,6 +324,7 @@ textarea{resize:vertical;min-height:72px;}
     <span id="dash-filter-label" style="font-size:.85rem;font-weight:600;color:var(--ink);"></span>
     <button onclick="clearDashFilter()" style="margin-left:auto;background:none;border:1.5px solid var(--border);border-radius:8px;padding:4px 12px;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--muted);font-family:DM Sans,sans-serif;">✕ Clear filter</button>
   </div>
+  <div id="monthly-summary" style="margin-bottom:1.5rem;display:none;"></div>
   <div class="two-col">
     <div class="card">
       <div class="card-title" style="justify-content:space-between;"><span id="dash-list-title">🕐 Recent Activity</span>
@@ -971,6 +983,64 @@ function renderDash(){
   var chartTitleEl=document.getElementById('dash-chart-title');if(chartTitleEl)chartTitleEl.textContent=dashFilter?('\ud83d\udcca '+filterLabels[dashFilter]+' by Month'):'\ud83d\udcca This Year at a Glance';
   if(dChart)dChart.destroy();
   dChart=new Chart(document.getElementById('dashChart'),{type:'bar',data:{labels:lb,datasets:[{label:'Medical',data:evM,backgroundColor:'#95c9aa',borderRadius:4},{label:'Symptoms',data:syM,backgroundColor:'#e8aec4',borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{padding:12,font:{family:'DM Sans'}}}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  renderMonthlySummary();
+}
+
+// ============================================================
+// MONTHLY SUMMARY
+// ============================================================
+function renderMonthlySummary(){
+  var now=new Date(),yr=now.getFullYear(),mo=now.getMonth();
+  var moNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var moName=moNames[mo];
+  var inMo=function(r){if(!r.date)return false;var d=new Date(r.date+'T00:00:00');return d.getFullYear()===yr&&d.getMonth()===mo;};
+  var moEv=events.filter(inMo),moSy=symptoms.filter(inMo);
+  var lastMo=mo===0?11:mo-1,lastYr=mo===0?yr-1:yr;
+  var inLast=function(r){if(!r.date)return false;var d=new Date(r.date+'T00:00:00');return d.getFullYear()===lastYr&&d.getMonth()===lastMo;};
+  var lastEv=events.filter(inLast),lastSy=symptoms.filter(inLast);
+  var totalMo=moEv.length+moSy.length,totalLast=lastEv.length+lastSy.length;
+  var container=document.getElementById('monthly-summary');
+  if(!container)return;
+  if(events.length===0&&symptoms.length===0){container.style.display='none';return;}
+  // Most active week
+  var maxWk=1,maxWkCount=0;
+  for(var w=1;w<=5;w++){var ws=(w-1)*7+1,we=w*7;var wc=[...moEv,...moSy].filter(function(r){if(!r.date)return false;var day=parseInt(r.date.split('-')[2]);return day>=ws&&day<=we;}).length;if(wc>maxWkCount){maxWkCount=wc;maxWk=w;}}
+  // Event type counts
+  var types=['visit','checkup','surgery','medication','other'];
+  var typeLabels={visit:'Visits',checkup:'Check-ups',surgery:'Surgeries',medication:'Medications',other:'Other'};
+  var typeColors={visit:'background:var(--tag-visit);color:var(--tag-visit-t)',checkup:'background:var(--tag-checkup);color:var(--tag-checkup-t)',surgery:'background:var(--tag-surgery);color:var(--tag-surgery-t)',medication:'background:var(--tag-med);color:var(--tag-med-t)',other:'background:var(--tag-other);color:var(--tag-other-t)'};
+  var typeIcons={visit:'🩺',checkup:'✅',surgery:'🏥',medication:'💊',other:'📌'};
+  var typeCounts={};types.forEach(function(t){typeCounts[t]=moEv.filter(function(e){return e.type===t;}).length;});
+  // Top symptoms
+  var symFreq={};moSy.forEach(function(s){symFreq[s.name]=(symFreq[s.name]||0)+1;});
+  var topSym=Object.entries(symFreq).sort(function(a,b){return b[1]-a[1];}).slice(0,4);
+  // Insight
+  function buildInsight(){
+    if(totalMo===0)return'Nothing logged so far this month. If you\'ve had any symptoms, visits, or medications, now is a good time to add them.';
+    var parts=[];
+    if(totalLast===0)parts.push(moName+' is off to a start with '+totalMo+' entr'+(totalMo===1?'y':'ies')+' logged.');
+    else if(totalMo>totalLast)parts.push(moName+' has been more active than '+moNames[lastMo]+' — '+totalMo+' entr'+(totalMo===1?'y':'ies')+' vs '+totalLast+' last month.');
+    else if(totalMo<totalLast)parts.push(moName+' has been quieter than '+moNames[lastMo]+' — '+totalMo+' entr'+(totalMo===1?'y':'ies')+' logged so far, compared to '+totalLast+' last month.');
+    else parts.push(moName+' is tracking at the same pace as '+moNames[lastMo]+' with '+totalMo+' entr'+(totalMo===1?'y':'ies')+'.');
+    if(topSym.length>0){var tn=topSym[0][0],tc=topSym[0][1];if(tc>=3)parts.push(tn+' has appeared '+tc+' times — a recurring pattern worth mentioning at your next visit.');else if(tc===2)parts.push(tn+' came up '+tc+' times this month.');else if(topSym.length>=3)parts.push('Symptoms have been varied: '+topSym.slice(0,3).map(function(x){return x[0];}).join(', ')+'.');}
+    var hasHeadache=(symFreq['Headache']||0)>=1||(symFreq['Migraine']||0)>=1,hasFatigue=(symFreq['Fatigue']||0)>=1;
+    if(hasHeadache&&hasFatigue)parts.push('Fatigue and headache both appeared this month — they often accompany each other and may reflect sleep or stress patterns.');
+    var medCount=typeCounts['medication'];
+    if(medCount>=2)parts.push(medCount+' medications tracked this month — keep an eye on any interactions if these are new.');
+    else if(medCount===0&&lastEv.filter(function(e){return e.type==='medication';}).length>0)parts.push('No new medications logged this month.');
+    if(typeCounts['surgery']>0)parts.push('A procedure or surgery was logged — remember to record any follow-up visits.');
+    if(typeCounts['visit']===0&&typeCounts['checkup']===0&&moEv.length>0)parts.push('No doctor visits this month. If any symptoms are persisting, consider scheduling one.');
+    return parts.slice(0,3).join(' ');
+  }
+  var insight=buildInsight();
+  // Render chips
+  var chips='<span class="ms-chip"><strong>'+moEv.length+'</strong> Medical</span><span class="ms-chip"><strong>'+moSy.length+'</strong> Symptoms</span>'+(maxWkCount>0?'<span class="ms-chip">Most active: <strong>Week '+maxWk+'</strong></span>':'');
+  // Render type pills
+  var typePills=types.filter(function(t){return typeCounts[t]>0;}).map(function(t){return'<span class="ms-pill" style="'+typeColors[t]+'">'+typeIcons[t]+' '+typeLabels[t]+' ×'+typeCounts[t]+'</span>';}).join('');
+  // Render symptom pills
+  var symPills=topSym.map(function(x){return'<span class="ms-pill" style="background:var(--tag-symptom);color:var(--tag-symptom-t)">'+x[0]+' ×'+x[1]+'</span>';}).join('');
+  container.style.display='block';
+  container.innerHTML='<div class="card ms-card"><div class="card-title" style="margin-bottom:1rem;">📆 '+moName+' '+yr+' — Monthly Summary</div><div class="ms-stats-row">'+chips+'</div>'+(typePills?'<div class="ms-row"><span class="ms-label">Events</span><div class="ms-pills">'+typePills+'</div></div>':'')+(symPills?'<div class="ms-row"><span class="ms-label">Symptoms</span><div class="ms-pills">'+symPills+'</div></div>':'')+'<div class="ms-insight"><div class="ms-insight-label">✶ Insight</div><p class="ms-insight-text">'+insight+'</p></div></div>';
 }
 
 // ============================================================
